@@ -1,1 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[BUSINESS NAME] | Residential Cleaning in [SERVICE AREA]</title>
+<meta name="description" content="[BUSINESS NAME] provides reliable home cleaning in [SERVICE AREA]. Request a free quote in minutes.">
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="container nav">
+    <a href="index.html" class="nav-logo">[BUSINESS NAME]</a>
+    <ul class="nav-links">
+      <li><a href="services.html">Services</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="index.html#area">Service Area</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <a href="index.html#quote" class="nav-cta">Get a Free Quote</a>
+    <button class="nav-toggle" aria-label="Open menu">&#9776;</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow">Residential Cleaning &middot; [SERVICE AREA]</p>
+        <h1>A clean home, <em>done right</em>, every time.</h1>
+        <p class="lead">
+          [BUSINESS NAME] handles the cleaning so you get your weekend back.
+          Trusted, thorough, and easy to book &mdash; request a free quote and
+          we'll follow up within one business day.
+        </p>
+        <div class="hero-actions">
+          <a href="index.html#quote" class="btn btn-primary">Request a Free Quote</a>
+          <a href="services.html" class="btn btn-outline">See Services</a>
+        </div>
+      </div>
+
+      <div class="checklist-card">
+        <p class="eyebrow">Every visit covers</p>
+        <h3>Our standard checklist</h3>
+        <ul class="checklist" id="checklist">
+          <li><span class="check-box"><svg viewBox="0 0 16 16" fill="none"><path d="M2 8l4 4 8-8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Kitchen &amp; counters</li>
+          <li><span class="check-box"><svg viewBox="0 0 16 16" fill="none"><path d="M2 8l4 4 8-8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Bathrooms</li>
+          <li><span class="check-box"><svg viewBox="0 0 16 16" fill="none"><path d="M2 8l4 4 8-8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Bedrooms &amp; living areas</li>
+          <li><span class="check-box"><svg viewBox="0 0 16 16" fill="none"><path d="M2 8l4 4 8-8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Floors, vacuumed &amp; mopped</li>
+          <li><span class="check-box"><svg viewBox="0 0 16 16" fill="none"><path d="M2 8l4 4 8-8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Trash &amp; surfaces wiped down</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUE PROPS -->
+  <section class="value-props">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Why [BUSINESS NAME]</p>
+        <h2>Booking a cleaner shouldn't be a chore.</h2>
+      </div>
+      <div class="props-grid">
+        <div class="prop-card">
+          <div class="num">01</div>
+          <h3>Simple booking</h3>
+          <p>Tell us about your home, get a quote, pick a date. No back-and-forth.</p>
+        </div>
+        <div class="prop-card">
+          <div class="num">02</div>
+          <h3>Consistent quality</h3>
+          <p>The same standard checklist, every visit, so nothing gets missed.</p>
+        </div>
+        <div class="prop-card">
+          <div class="num">03</div>
+          <h3>Local &amp; reliable</h3>
+          <p>We serve [SERVICE AREA] and show up when we say we will.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICE AREA -->
+  <section class="service-area" id="area">
+    <div class="container">
+      <p class="eyebrow">Where we work</p>
+      <h2>Proudly serving [SERVICE AREA]</h2>
+      <p>Not sure if you're in range? Send your address in the quote form and we'll confirm right away.</p>
+      <div class="area-tags">
+        <span class="area-tag">[Neighborhood / City 1]</span>
+        <span class="area-tag">[Neighborhood / City 2]</span>
+        <span class="area-tag">[Neighborhood / City 3]</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUOTE FORM -->
+  <section class="quote-section" id="quote">
+    <div class="container quote-grid">
+      <div>
+        <p class="eyebrow">Get started</p>
+        <h2>Request your free quote</h2>
+        <p style="margin-top:14px; color:#45503F; max-width:44ch;">
+          Fill out the form and we'll get back to you within one business day
+          with pricing and availability. No obligation.
+        </p>
+      </div>
+
+      <form class="quote-form" id="quote-form">
+        <div class="form-row">
+          <div>
+            <label for="name">Full name</label>
+            <input type="text" id="name" name="name" required>
+          </div>
+          <div>
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <div>
+            <label for="property">Property type</label>
+            <select id="property" name="property">
+              <option>House</option>
+              <option>Apartment / Condo</option>
+              <option>Office</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="size">Approx. size (sq ft or # of rooms)</label>
+            <input type="text" id="size" name="size">
+          </div>
+          <div>
+            <label for="frequency">Frequency</label>
+            <select id="frequency" name="frequency">
+              <option>One-time</option>
+              <option>Weekly</option>
+              <option>Bi-weekly</option>
+              <option>Monthly</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="address">Address / service area</label>
+          <input type="text" id="address" name="address" placeholder="Street, city">
+        </div>
+        <div>
+          <label for="notes">Notes (optional)</label>
+          <textarea id="notes" name="notes" placeholder="Anything we should know?"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Send Quote Request</button>
+        <p class="form-note">We'll never share your information. This form is not yet connected &mdash; see Day 6&ndash;7 of the build plan.</p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>[BUSINESS NAME]</h4>
+        <p style="max-width:32ch; font-size:0.9rem;">Residential cleaning services in [SERVICE AREA]. Licensed &amp; insured. [Add real details here.]</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li>[Phone placeholder]</li>
+          <li>[Email placeholder]</li>
+          <li>[SERVICE AREA]</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Links</h4>
+        <ul>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 [BUSINESS NAME]. All rights reserved.</span>
+      <span>Privacy Policy (placeholder)</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
