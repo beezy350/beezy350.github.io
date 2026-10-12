@@ -1,0 +1,140 @@
+<title>Falcon Scan Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one working column (upload → reading → review → estimate), Falcon navy and gold */
+:root {
+  --bg: #F4F5F7; --surface: #FFFFFF; --ink: #1B2230; --muted: #5A6475; --line: rgba(29, 53, 87, 0.14);
+  --navy: #1D3557; --navy-ink: #FFFFFF; --gold: #C8963E; --gold-soft: #FBF5E9; --good: #2F6F62; --good-soft: #E7F2EF;
+  --bad: #A3472B; --bad-soft: #FBEAEA; --field: #F7F8FA;
+  --display: "Fraunces", Georgia, serif; --body: "Inter", -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11161F; --surface: #1A2130; --ink: #E8ECF2; --muted: #9AA6B8; --line: rgba(200, 212, 230, 0.16);
+  --navy: #8FB3E8; --navy-ink: #0E1420; --gold: #D9AC5C; --gold-soft: #2A2416; --good: #7CC4B2; --good-soft: #15302B;
+  --bad: #E58C70; --bad-soft: #35201A; --field: #141A26; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #11161F; --surface: #1A2130; --ink: #E8ECF2; --muted: #9AA6B8; --line: rgba(200, 212, 230, 0.16);
+  --navy: #8FB3E8; --navy-ink: #0E1420; --gold: #D9AC5C; --gold-soft: #2A2416; --good: #7CC4B2; --good-soft: #15302B;
+  --bad: #E58C70; --bad-soft: #35201A; --field: #141A26; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); margin: 0; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 28px 16px 64px; display: flex; flex-direction: column; gap: 18px; }
+h1, h2 { font-family: var(--display); color: var(--navy); margin: 0; text-wrap: balance; line-height: 1.15; }
+h1 { font-size: clamp(1.8rem, 5vw, 2.4rem); }
+h2 { font-size: 1.25rem; }
+.eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin: 0 0 6px; }
+.lead { color: var(--muted); margin: 8px 0 0; max-width: 64ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(16px, 3vw, 24px); display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.note { font-size: 0.86rem; color: var(--muted); margin: 0; }
+.banner { border-radius: 10px; padding: 12px 14px; font-size: 0.92rem; }
+.banner.warn { background: var(--gold-soft); border-left: 3px solid var(--gold); }
+.banner.bad { background: var(--bad-soft); border-left: 3px solid var(--bad); }
+.banner.good { background: var(--good-soft); border-left: 3px solid var(--good); }
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 22px 16px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: border-color .15s, background .15s; }
+.drop.over { border-color: var(--gold); background: var(--gold-soft); }
+.btn { font: 600 0.94rem var(--body); border-radius: 10px; padding: 11px 18px; border: 2px solid var(--navy); background: var(--navy); color: var(--navy-ink); cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--navy); }
+.btn.small { padding: 7px 12px; font-size: 0.85rem; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.page { border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; background: var(--field); min-width: 0; }
+.page img { width: 100%; aspect-ratio: 8.5 / 11; object-fit: cover; object-position: top; border-radius: 6px; background: #fff; }
+.page .meta { font-size: 0.8rem; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+.page .state { font-size: 0.8rem; font-weight: 600; }
+.state.ok { color: var(--good); } .state.err { color: var(--bad); } .state.run { color: var(--gold); }
+.page .tools { display: flex; gap: 4px; }
+.icon { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 6px; padding: 2px 8px; cursor: pointer; font: 600 0.8rem var(--body); }
+.progress { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.progress span { display: block; height: 100%; width: 0; background: var(--gold); transition: width .3s; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+thead th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+tr.group th { background: var(--field); color: var(--navy); font-size: 0.8rem; }
+tr.unclear { background: var(--gold-soft); }
+tr.unclear td:last-child { color: var(--bad); font-weight: 600; font-size: 0.8rem; }
+td input[type=text] { width: 100%; min-width: 120px; font: 0.92rem var(--body); padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--field); color: var(--ink); font-variant-numeric: tabular-nums; }
+.big { font-family: var(--display); font-size: clamp(2.2rem, 8vw, 3.2rem); font-weight: 700; color: var(--good); margin: 0; font-variant-numeric: tabular-nums; }
+.big.owe { color: var(--bad); }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.money td:last-child, .money th:last-child { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.sum th, tr.sum td { font-weight: 700; color: var(--navy); }
+ul.flags { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
+.summary { white-space: pre-wrap; font-size: 0.88rem; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; }
+[hidden] { display: none !important; }
+@media (max-width: 640px) { .split { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .progress span, .drop { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Falcon Tax Solutions · Internal</p>
+    <h1>Scan Reader</h1>
+    <p class="lead">Drop in a client's handwritten 2026 Tax Organizer (phone photos or a scanned PDF). Claude reads the handwriting on your plan, you check anything unclear, and you get the federal and state estimate.</p>
+  </header>
+
+  <div class="banner bad" id="no-claude" hidden>Reading handwriting needs Claude, which isn't available in this view. Open this page from claude.ai while signed in.</div>
+
+  <section class="card" aria-labelledby="h-upload">
+    <h2 id="h-upload">1. Add the pages</h2>
+    <div class="drop" id="drop">
+      <p class="note">Drag pages here, or</p>
+      <label class="btn" for="file">Choose photos or PDF</label>
+      <input type="file" id="file" class="sr" accept="image/jpeg,image/png,image/webp,application/pdf" multiple>
+      <p class="note">JPG, PNG or a scanned PDF · up to 8 pages · one organizer page per photo, flat and well lit</p>
+    </div>
+    <p class="banner warn" id="upload-msg" hidden></p>
+    <div class="pages" id="pages"></div>
+    <div class="row">
+      <button type="button" class="btn" id="read" disabled>Read handwriting</button>
+      <button type="button" class="btn ghost" id="stop" hidden>Stop</button>
+      <label class="row note"><input type="checkbox" id="careful"> Extra careful (slower, for messy handwriting)</label>
+    </div>
+    <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+    <p class="note" id="read-status" role="status" aria-live="polite"></p>
+    <p class="note">Uses your Claude plan's usage, about one request per page. Client scans go to Anthropic under your account; don't upload pages with Social Security numbers.</p>
+  </section>
+
+  <section class="card" id="review" hidden aria-labelledby="h-review">
+    <h2 id="h-review">2. Check what was read</h2>
+    <p class="note" id="review-note"></p>
+    <label class="row note"><input type="checkbox" id="only-unclear"> Show only lines to check</label>
+    <div class="table-wrap"><table id="review-table"><thead><tr><th>Line on the organizer</th><th>Read as</th><th></th></tr></thead><tbody></tbody></table></div>
+    <div class="row"><button type="button" class="btn" id="calc">Calculate estimate</button></div>
+  </section>
+
+  <section class="card" id="result" hidden aria-labelledby="h-result">
+    <h2 id="h-result">3. Estimate</h2>
+    <div class="split">
+      <div>
+        <p class="eyebrow" id="fed-label">Federal</p>
+        <p class="big" id="fed-amount"></p>
+        <p class="note" id="fed-sub"></p>
+      </div>
+      <div>
+        <p class="eyebrow" id="st-label">State</p>
+        <p class="big" id="st-amount"></p>
+        <p class="note" id="st-sub"></p>
+      </div>
+    </div>
+    <p class="banner good" id="combined"></p>
+    <div class="split">
+      <div class="table-wrap"><table class="money" id="fed-table"></table></div>
+      <div><h2>Things to check</h2><ul class="flags" id="flags"></ul></div>
+    </div>
+    <h2>Message for the client</h2>
+    <pre class="summary" id="summary"></pre>
+    <div class="row"><button type="button" class="btn ghost" id="copy">Copy message</button><span class="note" id="copy-status" role="status"></span></div>
+  </section>
+</div>
+
+<script src="fields.js"></script>
+<script src="js/tax2026.js"></script>
+<script src="js/states.js"></script>
+<script src="js/organizer-map.js"></script>
+<script src="scan.js"></script>

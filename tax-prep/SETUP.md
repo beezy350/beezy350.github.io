@@ -60,3 +60,12 @@ recalculation) so formula results are stored; the website reads the "Data" tab.
 Update the per diem rates on the Data tab and the tax-year text each year.
 PDF field names are read by js/organizer-map.js; keep them stable. Scanned or
 handwritten PDFs have no form data and cannot be read automatically.
+
+## Scan Reader (handwritten organizers, internal)
+
+`tax-prep/scan-reader/` is a private claude.ai page (not part of the public
+site). It sends photos or scanned-PDF pages of a handwritten organizer to
+Claude on the owner's plan (artifact `sample` capability with images), shows
+the values read for review, and estimates with the same js/tax2026.js,
+js/states.js and js/organizer-map.js. `fields.js` is generated from the PDF
+organizer's field names; regenerate it whenever the PDF fields change.
