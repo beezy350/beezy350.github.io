@@ -236,7 +236,13 @@
         </p>
       </div>
 
-      <form class="quote-form" id="quote-form">
+      <form class="quote-form" id="quote-form" action="https://api.web3forms.com/submit" method="POST">
+        <!-- Replace with the access key Web3Forms emails you (free at web3forms.com) -->
+        <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_ACCESS_KEY">
+        <input type="hidden" name="subject" value="New tax consultation request">
+        <input type="hidden" name="from_name" value="[BUSINESS NAME] website">
+        <!-- Spam honeypot: real visitors never see or tick this -->
+        <input type="checkbox" name="botcheck" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="form-row">
           <div>
             <label for="name">Full name</label>
@@ -293,7 +299,8 @@
           <span>I agree to be contacted about my request. I understand submitting this form does not create a preparer-client relationship.</span>
         </label>
         <button type="submit" class="btn btn-primary">Request Consultation</button>
-        <p class="form-note">This form is not yet connected. Wire it to Web3Forms or Formspree before launch.</p>
+        <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+        <p class="form-note">We reply within one business day. Your request is sent by email only and is not stored on this website.</p>
       </form>
     </div>
   </section>

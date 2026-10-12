@@ -47,16 +47,53 @@ if (checklist) {
 }
 
 // ============================================
-// Quote form — placeholder handler.
-// Day 6-7 of the build plan replaces this with
-// real lead capture (Web3Forms / Formspree).
+// Quote form. Forms with an action URL and a real
+// Web3Forms access key submit via fetch; anything
+// else stays in local test mode.
 // ============================================
 const quoteForm = document.getElementById('quote-form');
 
 if (quoteForm) {
-  quoteForm.addEventListener('submit', (e) => {
+  const statusEl = document.getElementById('form-status');
+  const submitBtn = quoteForm.querySelector('button[type="submit"]');
+  const keyField = quoteForm.querySelector('[name="access_key"]');
+  const isLive = () => quoteForm.action.startsWith('http') && keyField && !keyField.value.startsWith('YOUR_');
+
+  const showStatus = (msg, isError) => {
+    if (!statusEl) { alert(msg); return; }
+    statusEl.textContent = msg;
+    statusEl.classList.toggle('error', Boolean(isError));
+  };
+
+  quoteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    alert('Form captured locally for testing. Lead storage + email notifications get wired up in Day 6-7.');
-    quoteForm.reset();
+
+    if (!isLive()) {
+      showStatus('Test mode: the form is not connected yet, so nothing was sent. Add your Web3Forms access key to go live.');
+      quoteForm.reset();
+      return;
+    }
+
+    submitBtn.disabled = true;
+    const originalLabel = submitBtn.textContent;
+    submitBtn.textContent = 'Sending...';
+
+    try {
+      const res = await fetch(quoteForm.action, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(quoteForm),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) throw new Error(data.message || 'Request failed');
+
+      showStatus("Thanks! We received your request and will contact you within one business day.");
+      quoteForm.reset();
+    } catch (err) {
+      showStatus('Sorry, something went wrong sending your request. Please call or email us directly.', true);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalLabel;
+    }
   });
 }

@@ -223,3 +223,20 @@
   .steps { grid-template-columns: 1fr; }
   .price-card.featured { margin-top: 8px; }
 }
+
+/* Form submission state */
+.hp { display: none; }
+
+.form-status:empty { display: none; }
+
+.form-status {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #E7F2EF;
+  color: #24574D;
+}
+
+.form-status.error { background: #FBEAEA; color: #8A2C2C; }
+
+.btn[disabled] { opacity: 0.6; cursor: wait; transform: none; }
