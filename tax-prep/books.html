@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Falcon Books</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Internal income and expense tracker for Falcon Tax Solutions.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/tax.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="container nav">
+    <a href="index.html" class="nav-logo">Falcon Tax Solutions</a>
+    <span class="internal-tag">Internal</span>
+  </nav>
+</header>
+
+<main class="books">
+  <div class="container">
+
+    <div class="books-head">
+      <div>
+        <p class="eyebrow">Business books</p>
+        <h1>Falcon Books</h1>
+        <p class="books-private">Saved only in this browser on this device. Back up regularly from the Backup tab.</p>
+      </div>
+      <div class="field year-field">
+        <label for="year">Tax year</label>
+        <select id="year"></select>
+      </div>
+    </div>
+
+    <div class="sample-banner" id="sample-banner" hidden>
+      <p><strong>You're looking at example entries.</strong> They show how the tracker works and are not your numbers.</p>
+      <button type="button" class="btn btn-primary btn-sm" id="clear-samples">Clear examples and start my books</button>
+    </div>
+
+    <section class="tiles" aria-label="Year summary">
+      <div class="tile"><p class="tile-label">Income</p><p class="tile-value" id="t-income">$0</p></div>
+      <div class="tile"><p class="tile-label">Deductible expenses</p><p class="tile-value" id="t-expenses">$0</p></div>
+      <div class="tile"><p class="tile-label">Net profit</p><p class="tile-value" id="t-profit">$0</p></div>
+      <div class="tile accent"><p class="tile-label">Set aside for taxes</p><p class="tile-value" id="t-setaside">$0</p><p class="tile-note">25% of profit, a rough guide</p></div>
+    </section>
+
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" class="tab" data-tab="tx" aria-selected="true">Transactions</button>
+      <button type="button" role="tab" class="tab" data-tab="reports" aria-selected="false">Reports</button>
+      <button type="button" role="tab" class="tab" data-tab="backup" aria-selected="false">Import &amp; backup</button>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <section class="tab-panel" id="panel-tx">
+      <form class="entry-card" id="entry-form" novalidate>
+        <h2 id="form-title">Add a transaction</h2>
+        <div class="type-toggle" role="radiogroup" aria-label="Type">
+          <label><input type="radio" name="type" value="income" checked><span>Money in</span></label>
+          <label><input type="radio" name="type" value="expense"><span>Money out</span></label>
+        </div>
+        <div class="entry-grid">
+          <div class="field">
+            <label for="f-date">Date</label>
+            <input type="date" id="f-date" required>
+          </div>
+          <div class="field">
+            <label for="f-amount">Amount</label>
+            <div class="money"><input type="number" id="f-amount" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required></div>
+          </div>
+          <div class="field">
+            <label for="f-category">Category</label>
+            <select id="f-category"></select>
+          </div>
+          <div class="field">
+            <label for="f-payee">Client or vendor</label>
+            <input type="text" id="f-payee" placeholder="e.g. J. Smith or Office Depot" autocomplete="off">
+          </div>
+          <div class="field miles-field" id="miles-field" hidden>
+            <label for="f-miles">Business miles</label>
+            <div class="miles-row">
+              <input type="number" id="f-miles" min="0" step="0.1" inputmode="decimal" placeholder="0" aria-label="Business miles">
+              <span>&times;</span>
+              <div class="money"><input type="number" id="f-rate" min="0" step="0.005" value="0.725" inputmode="decimal" aria-label="Rate per mile"></div>
+            </div>
+            <p class="est-help">IRS 2026 rate is 72.5&cent; per mile. Fills in the amount for you.</p>
+          </div>
+          <div class="field span-2">
+            <label for="f-note">Note (optional)</label>
+            <input type="text" id="f-note" placeholder="What was it for?" autocomplete="off">
+          </div>
+        </div>
+        <p class="form-status" id="entry-status" role="status" aria-live="polite"></p>
+        <div class="entry-actions">
+          <button type="submit" class="btn btn-primary" id="save-btn">Add transaction</button>
+          <button type="button" class="btn btn-outline" id="cancel-edit" hidden>Cancel edit</button>
+        </div>
+      </form>
+
+      <div class="list-head">
+        <h2>Transactions</h2>
+        <div class="list-filters">
+          <label class="sr-only" for="month-filter">Month</label>
+          <select id="month-filter"></select>
+          <label class="check small"><input type="checkbox" id="needs-filter"> Needs a category only</label>
+        </div>
+      </div>
+      <ul class="tx-list" id="tx-list"></ul>
+      <p class="empty-state" id="tx-empty" hidden>No transactions for this period yet. Add your first one above, or import a bank file from the Import &amp; backup tab.</p>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="tab-panel" id="panel-reports" hidden>
+      <div class="report-card">
+        <h2>Money in and out by month</h2>
+        <div class="legend"><span class="key in"></span>Income <span class="key out"></span>Expenses</div>
+        <div class="bars" id="bars"></div>
+      </div>
+
+      <div class="report-grid">
+        <div class="report-card">
+          <h2>Schedule C summary</h2>
+          <p class="est-help">Totals by IRS Schedule C line. Meals count at 50%.</p>
+          <div class="table-wrap"><table class="breakdown sched" id="sched"></table></div>
+        </div>
+        <div class="report-card">
+          <h2>Quarterly tax set-aside</h2>
+          <p class="est-help">Estimated tax payments are due on these dates if you expect to owe $1,000 or more.</p>
+          <div class="table-wrap"><table class="breakdown" id="quarters"></table></div>
+          <p class="est-help" id="se-note"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- IMPORT & BACKUP -->
+    <section class="tab-panel" id="panel-backup" hidden>
+      <div class="report-grid">
+        <div class="report-card">
+          <h2>Import from your bank</h2>
+          <p>Download a CSV file from your business bank account (look for "Export" or "Download transactions"), then choose it here. New rows arrive marked <em>Needs a category</em>.</p>
+          <label class="btn btn-outline file-btn" for="import-file">Choose bank CSV file</label>
+          <input type="file" id="import-file" accept=".csv,text/csv" class="sr-only">
+          <p class="form-status" id="import-status" role="status" aria-live="polite"></p>
+        </div>
+        <div class="report-card">
+          <h2>Back up and restore</h2>
+          <p>Your books live only in this browser. Save a backup file at least once a month and keep it somewhere safe.</p>
+          <div class="btn-stack">
+            <button type="button" class="btn btn-primary" id="backup-btn">Download backup file</button>
+            <label class="btn btn-outline file-btn" for="restore-file">Restore from backup</label>
+            <input type="file" id="restore-file" accept=".json,application/json" class="sr-only">
+            <button type="button" class="btn btn-outline" id="export-btn">Export CSV for QuickBooks or your accountant</button>
+          </div>
+          <p class="form-status" id="backup-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+      <div class="report-card danger-zone">
+        <h2>Delete everything</h2>
+        <p>Removes all transactions from this browser. Download a backup first.</p>
+        <button type="button" class="btn btn-outline danger" id="wipe-btn">Delete all transactions</button>
+        <div class="confirm" id="wipe-confirm" hidden>
+          <p>Delete all <span id="wipe-count">0</span> transactions? This can't be undone.</p>
+          <button type="button" class="btn btn-primary danger-fill" id="wipe-yes">Yes, delete all</button>
+          <button type="button" class="btn btn-outline" id="wipe-no">Keep them</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script src="js/ledger.js"></script>
+<script src="js/books.js"></script>
+</body>
+</html>
