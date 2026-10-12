@@ -31,9 +31,18 @@
         <h1>Falcon Books</h1>
         <p class="books-private">Saved only in this browser on this device. Back up regularly from the Backup tab.</p>
       </div>
-      <div class="field year-field">
-        <label for="year">Tax year</label>
-        <select id="year"></select>
+      <div class="head-controls">
+        <div class="field">
+          <span class="label-text">Whose books</span>
+          <div class="type-toggle profile-toggle" role="radiogroup" aria-label="Business type">
+            <label><input type="radio" name="profile" value="tax" checked><span>Tax practice</span></label>
+            <label><input type="radio" name="profile" value="trucking"><span>Trucking company</span></label>
+          </div>
+        </div>
+        <div class="field year-field">
+          <label for="year">Tax year</label>
+          <select id="year"></select>
+        </div>
       </div>
     </div>
 
@@ -52,6 +61,7 @@
     <div class="tabs" role="tablist">
       <button type="button" role="tab" class="tab" data-tab="tx" aria-selected="true">Transactions</button>
       <button type="button" role="tab" class="tab" data-tab="reports" aria-selected="false">Reports</button>
+      <button type="button" role="tab" class="tab trucking-only" data-tab="fleet" aria-selected="false">Fleet &amp; IFTA</button>
       <button type="button" role="tab" class="tab" data-tab="backup" aria-selected="false">Import &amp; backup</button>
     </div>
 
@@ -75,6 +85,21 @@
           <div class="field">
             <label for="f-category">Category</label>
             <select id="f-category"></select>
+          </div>
+          <div class="field trucking-only">
+            <label for="f-truck">Truck</label>
+            <select id="f-truck"></select>
+          </div>
+          <div class="field" id="repair-field" hidden>
+            <label for="f-repair">Repair or maintenance item</label>
+            <select id="f-repair"></select>
+          </div>
+          <div class="field" id="fuel-field" hidden>
+            <span class="label-text">Fuel details (for IFTA)</span>
+            <div class="fuel-row">
+              <input type="number" id="f-gallons" min="0" step="0.001" inputmode="decimal" placeholder="Gallons" aria-label="Gallons">
+              <select id="f-state" aria-label="State or province where fuel was bought"></select>
+            </div>
           </div>
           <div class="field">
             <label for="f-payee">Client or vendor</label>
@@ -106,6 +131,8 @@
         <div class="list-filters">
           <label class="sr-only" for="month-filter">Month</label>
           <select id="month-filter"></select>
+          <label class="sr-only" for="truck-filter">Truck</label>
+          <select id="truck-filter" class="trucking-only"></select>
           <label class="check small"><input type="checkbox" id="needs-filter"> Needs a category only</label>
         </div>
       </div>
@@ -121,10 +148,23 @@
         <div class="bars" id="bars"></div>
       </div>
 
+      <div class="report-grid trucking-only">
+        <div class="report-card">
+          <h2>Profit by truck</h2>
+          <p class="est-help">Miles come from the IFTA miles log on the Fleet &amp; IFTA tab.</p>
+          <div class="table-wrap"><table class="breakdown wide" id="per-truck"></table></div>
+        </div>
+        <div class="report-card">
+          <h2>Repairs &amp; maintenance by item</h2>
+          <p class="est-help">Every repair line, largest first.</p>
+          <div class="table-wrap"><table class="breakdown" id="repairs-table"></table></div>
+        </div>
+      </div>
+
       <div class="report-grid">
         <div class="report-card">
           <h2>Schedule C summary</h2>
-          <p class="est-help">Totals by IRS Schedule C line. Meals count at 50%.</p>
+          <p class="est-help" id="sched-help">Totals by IRS Schedule C line. Meals count at 50%.</p>
           <div class="table-wrap"><table class="breakdown sched" id="sched"></table></div>
         </div>
         <div class="report-card">
@@ -133,6 +173,87 @@
           <div class="table-wrap"><table class="breakdown" id="quarters"></table></div>
           <p class="est-help" id="se-note"></p>
         </div>
+      </div>
+    </section>
+
+    <!-- FLEET & IFTA (trucking only) -->
+    <section class="tab-panel" id="panel-fleet" hidden>
+      <div class="report-grid">
+        <div class="report-card">
+          <h2>Your trucks <span class="count" id="truck-count"></span></h2>
+          <form class="inline-form" id="truck-form" novalidate>
+            <div class="field">
+              <label for="tr-unit">Unit number</label>
+              <input type="text" id="tr-unit" placeholder="e.g. 101" autocomplete="off" maxlength="20">
+            </div>
+            <div class="field">
+              <label for="tr-desc">Description (optional)</label>
+              <input type="text" id="tr-desc" placeholder="e.g. 2021 Freightliner Cascadia" autocomplete="off" maxlength="60">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Add truck</button>
+          </form>
+          <p class="form-status" id="truck-status" role="status" aria-live="polite"></p>
+          <ul class="truck-list" id="truck-list"></ul>
+        </div>
+
+        <div class="report-card">
+          <h2>IFTA miles log</h2>
+          <p class="est-help">Enter miles driven in each state or province, per truck, per quarter. Your ELD or trip sheets show these.</p>
+          <form class="inline-form" id="miles-form" novalidate>
+            <div class="field">
+              <label for="m-quarter">Quarter</label>
+              <select id="m-quarter"><option value="1">Q1 (Jan–Mar)</option><option value="2">Q2 (Apr–Jun)</option><option value="3">Q3 (Jul–Sep)</option><option value="4">Q4 (Oct–Dec)</option></select>
+            </div>
+            <div class="field">
+              <label for="m-truck">Truck</label>
+              <select id="m-truck"></select>
+            </div>
+            <div class="field">
+              <label for="m-state">State</label>
+              <select id="m-state"></select>
+            </div>
+            <div class="field">
+              <label for="m-miles">Miles</label>
+              <input type="number" id="m-miles" min="1" step="1" inputmode="numeric" placeholder="0">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Add miles</button>
+          </form>
+          <p class="form-status" id="miles-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="report-card ifta-card">
+        <div class="ifta-head">
+          <h2>IFTA quarterly summary</h2>
+          <div class="field">
+            <label class="sr-only" for="ifta-quarter">Quarter</label>
+            <select id="ifta-quarter"><option value="1">Q1</option><option value="2">Q2</option><option value="3">Q3</option><option value="4">Q4</option></select>
+          </div>
+        </div>
+        <div class="ifta-stats" id="ifta-stats"></div>
+        <div class="table-wrap"><table class="breakdown wide" id="ifta-table"></table></div>
+        <p class="est-help">Taxable gallons = miles in the state &divide; fleet MPG. Enter these totals in your base state's IFTA portal; it applies each jurisdiction's tax rate for the quarter. Positive net gallons usually means tax owed there; negative means a credit.</p>
+        <details class="miles-entries">
+          <summary>Miles entries this quarter (<span id="miles-count">0</span>)</summary>
+          <ul class="mini-list" id="miles-list"></ul>
+        </details>
+      </div>
+
+      <div class="report-card">
+        <h2>Trucking tax calendar</h2>
+        <div class="table-wrap">
+          <table class="breakdown wide calendar">
+            <tr class="head"><th>What</th><th>When</th><th>Official source</th></tr>
+            <tr><th>IFTA quarterly fuel tax return</th><td>Apr 30, Jul 31, Oct 31, Jan 31</td><td><a href="https://www.iftach.org" target="_blank" rel="noopener">iftach.org</a></td></tr>
+            <tr><th>Form 2290 heavy vehicle use tax (55,000 lbs+)</th><td>Aug 31 for trucks on the road in July; new trucks by the end of the month after first use</td><td><a href="https://www.irs.gov/forms-pubs/about-form-2290" target="_blank" rel="noopener">IRS Form 2290</a></td></tr>
+            <tr><th>UCR annual registration</th><td>Before Jan 1 each year (registration opens in the fall)</td><td><a href="https://www.ucr.gov" target="_blank" rel="noopener">ucr.gov</a></td></tr>
+            <tr><th>IRP apportioned plates renewal</th><td>Yearly; date set by your base state</td><td>Your state DMV / IRP office</td></tr>
+            <tr><th>1099-NEC to contract drivers paid $2,000+ in 2026 (was $600)</th><td>Jan 31</td><td><a href="https://www.irs.gov/forms-pubs/about-form-1099-nec" target="_blank" rel="noopener">IRS Form 1099-NEC</a></td></tr>
+            <tr><th>Form 941 payroll tax (if you have W-2 drivers)</th><td>Apr 30, Jul 31, Oct 31, Jan 31</td><td><a href="https://www.irs.gov/forms-pubs/about-form-941" target="_blank" rel="noopener">IRS Form 941</a></td></tr>
+            <tr><th>Federal estimated tax (owners)</th><td>Apr 15, Jun 15, Sep 15, Jan 15</td><td><a href="https://www.irs.gov/forms-pubs/about-form-1040-es" target="_blank" rel="noopener">IRS Form 1040-ES</a></td></tr>
+          </table>
+        </div>
+        <p class="est-help">Some states add their own road taxes or permits, such as New York HUT, Kentucky KYU, New Mexico WDT and Oregon weight-mile tax.</p>
       </div>
     </section>
 
@@ -148,7 +269,7 @@
         </div>
         <div class="report-card">
           <h2>Back up and restore</h2>
-          <p>Your books live only in this browser. Save a backup file at least once a month and keep it somewhere safe.</p>
+          <p>These books live only in this browser. Save a backup file at least once a month and keep it somewhere safe. Each set of books (tax practice, trucking) backs up separately.</p>
           <div class="btn-stack">
             <button type="button" class="btn btn-primary" id="backup-btn">Download backup file</button>
             <label class="btn btn-outline file-btn" for="restore-file">Restore from backup</label>
@@ -160,7 +281,7 @@
       </div>
       <div class="report-card danger-zone">
         <h2>Delete everything</h2>
-        <p>Removes all transactions from this browser. Download a backup first.</p>
+        <p>Removes all transactions in these books from this browser. Download a backup first.</p>
         <button type="button" class="btn btn-outline danger" id="wipe-btn">Delete all transactions</button>
         <div class="confirm" id="wipe-confirm" hidden>
           <p>Delete all <span id="wipe-count">0</span> transactions? This can't be undone.</p>

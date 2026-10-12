@@ -55,7 +55,7 @@ eq(Boolean(L.importBankCSV('Foo,Bar\n1,2').error), true);
 
 // Export round trip keeps commas safe
 const out = L.toCSV([{ date: '2026-01-01', type: 'expense', amount: 5, category: 'supplies', payee: 'A, B', note: 'x' }]);
-eq(out.split('\n')[1], '2026-01-01,expense,-5.00,Supplies,22,"A, B",x');
+eq(out.split('\n')[1], '2026-01-01,expense,-5.00,Supplies,22,"A, B",x,,,,');
 
 // Unsorted imports stay split by direction in the Schedule C summary
 const mixed = L.scheduleC([
@@ -63,5 +63,43 @@ const mixed = L.scheduleC([
   { date: '2026-06-02', type: 'expense', amount: 20, category: 'uncategorized' },
 ], 2026);
 eq(mixed.map((r) => [r.label, r.total]), [['Needs a category (money in)', 300], ['Needs a category (money out)', 20]]);
+
+// ---------- trucking ----------
+const trucks = [{ id: 'T1', unit: 'Unit 101' }, { id: 'T2', unit: 'Unit 102' }];
+const ttx = [
+  { date: '2026-02-01', type: 'expense', amount: 1000, category: 't_fuel', truck: 'T1', gallons: 250, state: 'TX' },
+  { date: '2026-03-01', type: 'expense', amount: 800, category: 't_fuel', truck: 'T1', gallons: 200, state: 'OK' },
+  { date: '2026-04-02', type: 'expense', amount: 300, category: 't_fuel', truck: 'T2', gallons: 75, state: 'TX' }, // Q2
+  { date: '2026-02-10', type: 'expense', amount: 600, category: 't_repairs', sub: 'brakes', truck: 'T1' },
+  { date: '2026-02-11', type: 'expense', amount: 250, category: 't_repairs', sub: 'oil', truck: 'T1' },
+  { date: '2026-05-01', type: 'expense', amount: 400, category: 't_repairs', sub: 'brakes', truck: 'T2' },
+  { date: '2026-05-02', type: 'expense', amount: 100, category: 't_repairs', truck: 'T2' }, // no item -> Other repair
+  { date: '2026-02-20', type: 'income', amount: 10000, category: 't_freight', truck: 'T1' },
+  { date: '2026-05-20', type: 'income', amount: 5000, category: 't_freight', truck: 'T2' },
+  { date: '2026-03-15', type: 'expense', amount: 100, category: 't_perdiem' }, // overhead, 80%
+];
+const milesLog = [
+  { year: 2026, quarter: 1, truck: 'T1', state: 'TX', miles: 1500 },
+  { year: 2026, quarter: 1, truck: 'T1', state: 'OK', miles: 1200 },
+  { year: 2026, quarter: 1, truck: 'T1', state: 'NM', miles: 300 },
+  { year: 2026, quarter: 2, truck: 'T2', state: 'TX', miles: 1000 },
+];
+
+eq(L.repairsBreakdown(ttx, 2026).map((r) => [r.label, r.total]),
+  [['Brakes (pads, shoes, drums, chambers)', 1000], ['Oil & filter change', 250], ['Other repair', 100]]);
+
+const pt = Object.fromEntries(L.perTruck(ttx, 2026, trucks, milesLog).map((r) => [r.id || 'overhead', r]));
+eq([pt.T1.income, pt.T1.fuel, pt.T1.repairs, pt.T1.expenses, pt.T1.profit, pt.T1.miles, pt.T1.costPerMile], [10000, 1800, 850, 2650, 7350, 3000, 0.88]);
+eq([pt.T2.expenses, pt.T2.costPerMile], [800, 0.8]);
+eq([pt.overhead.other, pt.overhead.costPerMile], [80, null]);
+
+const q1 = L.iftaQuarter(ttx, milesLog, 2026, 1);
+eq([q1.totalMiles, q1.totalGallons, q1.mpg, q1.due], [3000, 450, 6.67, '2026-04-30']);
+eq(q1.rows.map((r) => [r.state, r.miles, r.taxableGallons, r.paidGallons, r.netGallons]),
+  [['NM', 300, 45, 0, 45], ['OK', 1200, 180, 200, -20], ['TX', 1500, 225, 250, -25]]);
+eq(L.iftaQuarter(ttx, milesLog, 2026, 4).due, '2027-01-31');
+
+// Trucking rows feed the same Schedule C summary (per diem at 80%)
+eq(L.scheduleC(ttx, 2026).find((r) => r.id === 't_perdiem').deductible, 80);
 
 console.log(`All ${n} checks passed`);

@@ -4,7 +4,7 @@
 // year-end summary maps straight onto the return.
 // ============================================
 (function (root) {
-  const CATEGORIES = [
+  const TAX_CATEGORIES = [
     // income
     { id: 'tax_fees', label: 'Tax prep fees', type: 'income', line: '1' },
     { id: 'bk_fees', label: 'Bookkeeping fees', type: 'income', line: '1' },
@@ -26,8 +26,78 @@
     { id: 'software', label: 'Software & subscriptions', type: 'expense', line: '27a' },
     { id: 'education', label: 'Courses & CE (AFSP)', type: 'expense', line: '27a' },
     { id: 'other_expense', label: 'Other expense', type: 'expense', line: '27a' },
-    // imported, not yet sorted
-    { id: 'uncategorized', label: 'Needs a category', type: 'any', line: '' },
+  ].map((c) => ({ ...c, profile: 'tax' }));
+
+  // Trucking company (owner-operator to ~20 trucks)
+  const TRUCKING_CATEGORIES = [
+    // income
+    { id: 't_freight', label: 'Freight / linehaul revenue', type: 'income', line: '1' },
+    { id: 't_fsc', label: 'Fuel surcharge', type: 'income', line: '1' },
+    { id: 't_accessorial', label: 'Detention, layover & accessorials', type: 'income', line: '1' },
+    { id: 't_other_income', label: 'Other income', type: 'income', line: '6' },
+    // expenses
+    { id: 't_fuel', label: 'Fuel', type: 'expense', line: '9', fuel: true },
+    { id: 't_repairs', label: 'Repairs & maintenance', type: 'expense', line: '21', itemized: true },
+    { id: 't_insurance', label: 'Truck insurance (liability, cargo, physical damage)', type: 'expense', line: '15' },
+    { id: 't_lease', label: 'Truck or trailer lease / rent', type: 'expense', line: '20a' },
+    { id: 't_loan_interest', label: 'Truck loan interest', type: 'expense', line: '16b' },
+    { id: 't_hvut', label: 'Heavy vehicle use tax (Form 2290)', type: 'expense', line: '23' },
+    { id: 't_ifta', label: 'IFTA fuel tax paid', type: 'expense', line: '23' },
+    { id: 't_irp', label: 'IRP plates & registration', type: 'expense', line: '23' },
+    { id: 't_permits', label: 'UCR, permits & state road taxes', type: 'expense', line: '23' },
+    { id: 't_tolls', label: 'Tolls, scales & parking', type: 'expense', line: '27a' },
+    { id: 't_dispatch', label: 'Dispatch & factoring fees', type: 'expense', line: '10' },
+    { id: 't_wages', label: 'Driver wages (W-2)', type: 'expense', line: '26' },
+    { id: 't_contract', label: 'Contract drivers (1099)', type: 'expense', line: '11' },
+    { id: 't_perdiem', label: 'Meals on the road (80%, DOT hours)', type: 'expense', line: '24b', deductible: 0.8 },
+    { id: 't_eld', label: 'ELD, load boards & software', type: 'expense', line: '27a' },
+    { id: 't_compliance', label: 'Drug tests, DOT physicals & compliance', type: 'expense', line: '27a' },
+    { id: 't_lumper', label: 'Lumper fees', type: 'expense', line: '27a' },
+    { id: 't_office', label: 'Office, phone & supplies', type: 'expense', line: '18' },
+    { id: 't_legal', label: 'Accounting & legal', type: 'expense', line: '17' },
+    { id: 't_other_expense', label: 'Other expense', type: 'expense', line: '27a' },
+  ].map((c) => ({ ...c, profile: 'trucking' }));
+
+  // Itemized repair & maintenance work, name by name
+  const REPAIR_ITEMS = [
+    ['pm', 'Preventive maintenance (PM) service'],
+    ['oil', 'Oil & filter change'],
+    ['tires_new', 'Tires (new or retread)'],
+    ['tire_repair', 'Tire repair & balancing'],
+    ['alignment', 'Wheel alignment'],
+    ['brakes', 'Brakes (pads, shoes, drums, chambers)'],
+    ['engine', 'Engine repair'],
+    ['transmission', 'Transmission & clutch'],
+    ['emissions', 'DPF, DEF & emissions system'],
+    ['def_fluid', 'DEF fluid'],
+    ['cooling', 'Coolant, radiator & water pump'],
+    ['electrical', 'Electrical, batteries & alternator'],
+    ['lights', 'Lights & wiring'],
+    ['suspension', 'Suspension & air bags'],
+    ['steering', 'Steering & front end'],
+    ['ac_heat', 'A/C & heating'],
+    ['apu', 'APU service'],
+    ['reefer', 'Reefer unit service'],
+    ['trailer', 'Trailer repair'],
+    ['glass', 'Windshield & glass'],
+    ['body', 'Body work & paint'],
+    ['dot_inspection', 'DOT annual inspection'],
+    ['towing', 'Roadside service & towing'],
+    ['wash', 'Truck wash'],
+    ['parts', 'Parts & shop supplies'],
+    ['labor', 'Shop labor'],
+    ['other', 'Other repair'],
+  ].map(([id, label]) => ({ id, label }));
+  const REPAIR_BY_ID = Object.fromEntries(REPAIR_ITEMS.map((r) => [r.id, r]));
+
+  // IFTA member jurisdictions (48 contiguous US states + 10 Canadian provinces)
+  const IFTA_JURISDICTIONS = ['AL','AR','AZ','CA','CO','CT','DE','FL','GA','IA','ID','IL','IN','KS','KY','LA','MA','MD','ME','MI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VA','VT','WA','WI','WV','WY','AB','BC','MB','NB','NL','NS','ON','PE','QC','SK'];
+
+  const CATEGORIES = [
+    ...TAX_CATEGORIES,
+    ...TRUCKING_CATEGORIES,
+    // imported, not yet sorted (both profiles)
+    { id: 'uncategorized', label: 'Needs a category', type: 'any', line: '', profile: 'all' },
   ];
   const BY_ID = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
 
@@ -115,6 +185,79 @@
       const s = summarize(sub, year);
       return { q, due: due.replace('2026', String(year)).replace('2027', String(Number(year) + 1)), profit: s.profit, setAside: s.setAside };
     });
+  }
+
+
+  // ---------- trucking ----------
+  function quarterOf(date) { return Math.floor((Number(String(date).slice(5, 7)) - 1) / 3) + 1; }
+
+  // Repairs & maintenance totals, item by item
+  function repairsBreakdown(list, year) {
+    const totals = new Map();
+    for (const t of inYear(list, year)) {
+      if (t.category !== 't_repairs') continue;
+      const item = REPAIR_BY_ID[t.sub] || REPAIR_BY_ID.other;
+      totals.set(item.id, (totals.get(item.id) || 0) + Math.abs(t.amount));
+    }
+    return [...totals.entries()]
+      .map(([id, total]) => ({ id, label: REPAIR_BY_ID[id].label, total: round2(total) }))
+      .sort((a, b) => b.total - a.total);
+  }
+
+  // Profit and cost per mile for each truck; '' = company overhead
+  function perTruck(list, year, trucks, milesLog) {
+    const rows = new Map([['', { id: '', unit: 'Company / overhead', income: 0, fuel: 0, repairs: 0, other: 0, miles: 0 }]]);
+    for (const tr of trucks || []) rows.set(tr.id, { id: tr.id, unit: tr.unit, income: 0, fuel: 0, repairs: 0, other: 0, miles: 0 });
+    for (const t of inYear(list, year)) {
+      const r = rows.get(t.truck || '') || rows.get('');
+      const amt = Math.abs(t.amount);
+      if (t.type === 'income') r.income += amt;
+      else if (t.category === 't_fuel') r.fuel += amt;
+      else if (t.category === 't_repairs') r.repairs += amt;
+      else r.other += deductibleAmount(t);
+    }
+    for (const m of milesLog || []) {
+      if (String(m.year) !== String(year)) continue;
+      const r = rows.get(m.truck);
+      if (r) r.miles += Number(m.miles) || 0;
+    }
+    return [...rows.values()].map((r) => {
+      const expenses = r.fuel + r.repairs + r.other;
+      return {
+        ...r,
+        income: round2(r.income), fuel: round2(r.fuel), repairs: round2(r.repairs), other: round2(r.other),
+        expenses: round2(expenses), profit: round2(r.income - expenses),
+        costPerMile: r.miles > 0 ? round2(expenses / r.miles) : null,
+      };
+    });
+  }
+
+  // IFTA quarter: miles and tax-paid gallons by jurisdiction.
+  // Taxable gallons = miles / fleet MPG. The IFTA portal applies each
+  // jurisdiction's rate, so no tax rates are hard-coded here.
+  function iftaQuarter(list, milesLog, year, quarter) {
+    const states = new Map();
+    const get = (st) => states.get(st) || states.set(st, { state: st, miles: 0, paidGallons: 0 }).get(st);
+    let totalMiles = 0, totalGallons = 0;
+    for (const m of milesLog || []) {
+      if (String(m.year) !== String(year) || Number(m.quarter) !== Number(quarter)) continue;
+      const miles = Number(m.miles) || 0;
+      get(m.state).miles += miles;
+      totalMiles += miles;
+    }
+    for (const t of inYear(list, year)) {
+      if (t.category !== 't_fuel' || quarterOf(t.date) !== Number(quarter)) continue;
+      const gal = Number(t.gallons) || 0;
+      totalGallons += gal;
+      if (t.state) get(t.state).paidGallons += gal;
+    }
+    const mpg = totalGallons > 0 ? totalMiles / totalGallons : 0;
+    const rows = [...states.values()].map((r) => {
+      const taxable = mpg > 0 ? r.miles / mpg : 0;
+      return { state: r.state, miles: round2(r.miles), taxableGallons: round2(taxable), paidGallons: round2(r.paidGallons), netGallons: round2(taxable - r.paidGallons) };
+    }).sort((a, b) => a.state.localeCompare(b.state));
+    const dueMonth = { 1: `${year}-04-30`, 2: `${year}-07-31`, 3: `${year}-10-31`, 4: `${Number(year) + 1}-01-31` }[quarter];
+    return { year: Number(year), quarter: Number(quarter), totalMiles: round2(totalMiles), totalGallons: round2(totalGallons), mpg: round2(mpg), rows, due: dueMonth };
   }
 
   // ---------- CSV ----------
@@ -206,17 +349,18 @@
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   }
 
-  function toCSV(list) {
-    const head = ['Date', 'Type', 'Amount', 'Category', 'Schedule C line', 'Payee / client', 'Note'];
+  function toCSV(list, truckNames) {
+    const head = ['Date', 'Type', 'Amount', 'Category', 'Schedule C line', 'Payee / client', 'Note', 'Repair item', 'Truck', 'Gallons', 'State'];
     const lines = [head.join(',')];
     for (const t of [...list].sort((a, b) => a.date.localeCompare(b.date))) {
       const cat = BY_ID[t.category] || BY_ID.uncategorized;
-      lines.push([t.date, t.type, signed(t).toFixed(2), cat.label, cat.line, t.payee, t.note].map(csvCell).join(','));
+      const item = t.category === 't_repairs' && REPAIR_BY_ID[t.sub] ? REPAIR_BY_ID[t.sub].label : '';
+      lines.push([t.date, t.type, signed(t).toFixed(2), cat.label, cat.line, t.payee, t.note, item, truckNames && t.truck ? truckNames[t.truck] || '' : '', t.gallons || '', t.state || ''].map(csvCell).join(','));
     }
     return lines.join('\n');
   }
 
-  const api = { CATEGORIES, BY_ID, summarize, scheduleC, quarterly, importBankCSV, toCSV, parseCSVText, toISODate, toNumber };
+  const api = { CATEGORIES, BY_ID, REPAIR_ITEMS, REPAIR_BY_ID, IFTA_JURISDICTIONS, repairsBreakdown, perTruck, iftaQuarter, quarterOf, summarize, scheduleC, quarterly, importBankCSV, toCSV, parseCSVText, toISODate, toNumber };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Ledger = api;
 })(typeof window !== 'undefined' ? window : globalThis);

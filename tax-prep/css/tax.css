@@ -587,3 +587,56 @@
   .tx { grid-template-columns: minmax(0, 1fr) auto; }
   #quarters, .sched { font-size: 0.85rem; }
 }
+
+/* ---------- Falcon Books: trucking ---------- */
+body:not(.is-trucking) .trucking-only { display: none !important; }
+.label-text { display: block; font-size: 0.85rem; font-weight: 600; color: var(--evergreen); margin-bottom: 6px; }
+.head-controls { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; }
+.profile-toggle span { padding: 10px 14px; }
+.fuel-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 8px; }
+.count { font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; color: #5A6475; margin-left: 6px; }
+
+.inline-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; align-items: end; }
+.inline-form .btn { white-space: nowrap; }
+
+.truck-list { list-style: none; display: flex; flex-direction: column; gap: 6px; max-height: 340px; overflow-y: auto; }
+.truck-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid rgba(29, 53, 87, 0.1); border-radius: 8px; }
+
+.ifta-card { margin-top: 18px; }
+.ifta-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ifta-head select { width: auto; padding: 8px 12px; }
+.ifta-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.stat { background: var(--linen); border-radius: 8px; padding: 10px 12px; }
+.stat-value { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--evergreen); font-variant-numeric: tabular-nums; }
+
+.breakdown.wide { min-width: 520px; }
+.breakdown.wide td { text-align: right; padding-left: 10px; }
+.breakdown.wide th { padding-right: 10px; }
+.breakdown.wide tr.head th:not(:first-child) { text-align: right; }
+.breakdown.calendar td { text-align: left; }
+.breakdown.calendar tr.head th:not(:first-child) { text-align: left; }
+.breakdown.calendar { min-width: 560px; }
+.calendar a { color: var(--evergreen); font-weight: 600; text-decoration: underline; }
+.breakdown tr.owe-row td:last-child { color: #A3472B; font-weight: 700; }
+.breakdown tr.neg-row td:nth-child(6) { color: #A3472B; font-weight: 700; }
+.empty-cell { color: #5A6475; text-align: left !important; padding: 12px 0; }
+.report-grid.trucking-only { margin-top: 18px; }
+
+.miles-entries summary { cursor: pointer; font-weight: 600; color: var(--evergreen); font-size: 0.9rem; }
+.mini-list { list-style: none; margin-top: 10px; display: flex; flex-direction: column; gap: 4px; font-size: 0.88rem; }
+.mini-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgba(29, 53, 87, 0.06); }
+
+@media (max-width: 760px) {
+  .ifta-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .head-controls { width: 100%; }
+  .profile-toggle { display: flex; width: 100%; }
+  .profile-toggle label { flex: 1; text-align: center; }
+}
+@media (max-width: 760px) {
+  .report-grid, .entry-grid { grid-template-columns: minmax(0, 1fr); }
+  .report-card, .entry-card { min-width: 0; }
+}
+.report-grid.trucking-only { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+#per-truck tr > th:first-child { white-space: nowrap; }
+.stat-value { font-size: 1.55rem; line-height: 1.2; margin-top: 2px; }
+@media (max-width: 1100px) { .report-grid.trucking-only { grid-template-columns: minmax(0, 1fr); } }
