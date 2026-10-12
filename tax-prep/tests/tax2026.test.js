@@ -21,6 +21,10 @@ const cases = [
   ['child credit phase-out at $50 per $1,000', { status: 'single', wages: 210500, childrenUnder17: 1 },
     { agi: 210500, childCredits: 1650 }],
   ['zero income', { status: 'single' }, { totalTax: 0, result: 0 }],
+  ['trucker per diem: 200 full + 40 travel days, 80% deductible', { status: 'single', seIncome: 100000, seExpenses: 40000, perDiemFull: 200, perDiemPartial: 40 },
+    { perDiemDeduction: 14720, agi: Math.round(45280 - 45280 * 0.9235 * 0.153 / 2) }],
+  ['per diem ignored for W-2 drivers', { status: 'single', wages: 60000, perDiemFull: 100 },
+    { perDiemDeduction: 0, taxableIncome: 43900 }],
 ];
 
 let failed = 0;

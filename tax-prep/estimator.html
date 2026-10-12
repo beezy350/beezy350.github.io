@@ -46,14 +46,86 @@
           <label class="choice"><input type="radio" name="status" value="hoh"><span><strong>Head of household</strong>Unmarried and paying most costs for a dependent</span></label>
           <label class="choice"><input type="radio" name="status" value="mfs"><span><strong>Married filing separately</strong>Each spouse files their own return</span></label>
         </div>
+        <div class="status-note" id="note-mfj" hidden>Joint return: enter both spouses' income on the next steps.</div>
+        <div class="status-note" id="note-mfs" hidden>Filing separately: enter only your own income. You can't take the tips, overtime or senior deductions or the Earned Income Credit in most cases, and if your spouse itemizes you must itemize too. Filing jointly usually costs less; a preparer can compare both for you.</div>
+        <div class="status-note" id="note-hoh" hidden>Head of household requires paying more than half the cost of keeping up a home for a qualifying person.</div>
+
         <div class="check-list">
           <label class="check"><input type="checkbox" id="you65" name="you65"> I was born before January 2, 1962 (65 or older)</label>
           <label class="check" id="spouse65-row" hidden><input type="checkbox" id="spouse65" name="spouse65"> My spouse was born before January 2, 1962</label>
         </div>
+
+        <div class="field-grid">
+          <div class="field">
+            <span class="label-text" id="deps-label">Do you have children or other dependents?</span>
+            <div class="type-toggle" role="radiogroup" aria-labelledby="deps-label">
+              <label><input type="radio" name="hasDeps" value="no" checked><span>No</span></label>
+              <label><input type="radio" name="hasDeps" value="yes"><span>Yes</span></label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="state">State you lived in during 2026</label>
+            <select id="state" name="state">
+              <option value="">Choose your state</option>
+              <option value="AL">Alabama</option>
+              <option value="AK">Alaska</option>
+              <option value="AZ">Arizona</option>
+              <option value="AR">Arkansas</option>
+              <option value="CA">California</option>
+              <option value="CO">Colorado</option>
+              <option value="CT">Connecticut</option>
+              <option value="DE">Delaware</option>
+              <option value="DC">District of Columbia</option>
+              <option value="FL">Florida</option>
+              <option value="GA">Georgia</option>
+              <option value="HI">Hawaii</option>
+              <option value="ID">Idaho</option>
+              <option value="IL">Illinois</option>
+              <option value="IN">Indiana</option>
+              <option value="IA">Iowa</option>
+              <option value="KS">Kansas</option>
+              <option value="KY">Kentucky</option>
+              <option value="LA">Louisiana</option>
+              <option value="ME">Maine</option>
+              <option value="MD">Maryland</option>
+              <option value="MA">Massachusetts</option>
+              <option value="MI">Michigan</option>
+              <option value="MN">Minnesota</option>
+              <option value="MS">Mississippi</option>
+              <option value="MO">Missouri</option>
+              <option value="MT">Montana</option>
+              <option value="NE">Nebraska</option>
+              <option value="NV">Nevada</option>
+              <option value="NH">New Hampshire</option>
+              <option value="NJ">New Jersey</option>
+              <option value="NM">New Mexico</option>
+              <option value="NY">New York</option>
+              <option value="NC">North Carolina</option>
+              <option value="ND">North Dakota</option>
+              <option value="OH">Ohio</option>
+              <option value="OK">Oklahoma</option>
+              <option value="OR">Oregon</option>
+              <option value="PA">Pennsylvania</option>
+              <option value="RI">Rhode Island</option>
+              <option value="SC">South Carolina</option>
+              <option value="SD">South Dakota</option>
+              <option value="TN">Tennessee</option>
+              <option value="TX">Texas</option>
+              <option value="UT">Utah</option>
+              <option value="VT">Vermont</option>
+              <option value="VA">Virginia</option>
+              <option value="WA">Washington</option>
+              <option value="WV">West Virginia</option>
+              <option value="WI">Wisconsin</option>
+              <option value="WY">Wyoming</option>
+            </select>
+          </div>
+        </div>
+        <div class="status-note tip" id="note-single-deps" hidden>With a qualifying child or relative, <strong>Head of household</strong> usually gives a bigger standard deduction and lower tax than Single. Consider choosing it above.</div>
       </section>
 
       <!-- 2. Family -->
-      <section class="est-step" data-title="Family" hidden>
+      <section class="est-step" data-title="Family" data-when="deps" hidden>
         <h2>Who do you support?</h2>
         <div class="field-grid">
           <div class="field">
@@ -73,7 +145,7 @@
       <!-- 3. Jobs -->
       <section class="est-step" data-title="Jobs" hidden>
         <h2>Income from jobs (W-2)</h2>
-        <p class="est-help">Use your last pay stub of the year, or your best guess. Add up all jobs, including your spouse's if filing jointly.</p>
+        <p class="est-help">Use your last pay stub of the year, or your best guess. <span id="jobs-scope">Add up all your jobs.</span></p>
         <div class="field-grid">
           <div class="field">
             <label for="wages">Total wages for the year</label>
@@ -94,6 +166,11 @@
             <label for="overtimePremium">Overtime premium (the extra "half")</label>
             <div class="money"><input type="number" id="overtimePremium" name="overtimePremium" min="0" step="1" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">Only the extra half of time-and-a-half counts.</p>
+          </div>
+          <div class="field state-tax-only" hidden>
+            <label for="stateWithheld"><span class="state-name">State</span> tax withheld</label>
+            <div class="money"><input type="number" id="stateWithheld" name="stateWithheld" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">W-2 box 17</p>
           </div>
         </div>
       </section>
@@ -140,6 +217,27 @@
             <div class="money"><input type="number" id="estimatedPayments" name="estimatedPayments" min="0" step="1" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">Quarterly payments sent to the IRS for 2026.</p>
           </div>
+          <div class="field state-tax-only" hidden>
+            <label for="stateEstimated"><span class="state-name">State</span> estimated payments</label>
+            <div class="money"><input type="number" id="stateEstimated" name="stateEstimated" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+          </div>
+        </div>
+
+        <label class="check"><input type="checkbox" id="isTrucker" name="isTrucker"> I'm a truck driver who stays away from home overnight</label>
+        <div class="perdiem-box" id="perdiem-box" hidden>
+          <p class="est-help">Per diem: $80 a day in the U.S. (IRS 2026 rate). The days you leave and come home count at 75%, and drivers under DOT hours rules deduct 80% of the total.</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="perDiemFull">Full days away from home</label>
+              <input type="number" id="perDiemFull" name="perDiemFull" min="0" max="366" step="1" inputmode="numeric" placeholder="0">
+            </div>
+            <div class="field">
+              <label for="perDiemPartial">Departure and return days</label>
+              <input type="number" id="perDiemPartial" name="perDiemPartial" min="0" max="366" step="1" inputmode="numeric" placeholder="0">
+              <p class="est-help">Usually 2 per trip.</p>
+            </div>
+          </div>
+          <p class="est-help" id="perdiem-preview"></p>
         </div>
       </section>
 
@@ -181,6 +279,8 @@
           <p class="result-amount" id="res-amount">$0</p>
           <p class="result-sub" id="res-sub"></p>
         </div>
+
+        <div class="state-result" id="state-result" hidden></div>
 
         <div class="result-grid">
           <div>
@@ -232,6 +332,7 @@
 </footer>
 
 <script src="js/tax2026.js"></script>
+<script src="js/states.js"></script>
 <script src="js/pl.js"></script>
 <script src="js/pl-import.js"></script>
 <script src="js/interview.js"></script>

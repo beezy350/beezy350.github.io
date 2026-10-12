@@ -37,6 +37,9 @@
   const CTC_PHASEOUT = { single: 200000, hoh: 200000, mfs: 200000, mfj: 400000 };
 
   const SS_WAGE_BASE = 184500;
+  // Transportation-industry per diem (IRS Notice 2026-60): $80/day in the U.S.,
+  // travel days at 75%, 80% deductible for drivers under DOT hours rules.
+  const PER_DIEM = { rate: 80, partialDay: 0.75, deductible: 0.8 };
   const QBI_RATE = 0.20;
   const QBI_SIMPLE_LIMIT = { single: 200000, hoh: 200000, mfs: 200000, mfj: 400000 };
 
@@ -77,7 +80,15 @@
     const withheld = num(input.withheld);
     const tips = Math.min(num(input.tips), wages);
     const overtime = Math.min(num(input.overtimePremium), wages);
-    const seNet = num(input.seIncome) - num(input.seExpenses); // can be a loss
+    // Truck driver per diem is a business deduction for the self-employed only
+    const hasBusiness = num(input.seIncome) > 0;
+    const perDiemDeduction = hasBusiness
+      ? (Math.floor(num(input.perDiemFull)) * PER_DIEM.rate + Math.floor(num(input.perDiemPartial)) * PER_DIEM.rate * PER_DIEM.partialDay) * PER_DIEM.deductible
+      : 0;
+    if (!hasBusiness && (num(input.perDiemFull) || num(input.perDiemPartial))) {
+      notes.push('Per diem was left out: employee drivers cannot deduct unreimbursed travel meals on their federal return. Ask your employer about a per diem reimbursement plan.');
+    }
+    const seNet = num(input.seIncome) - num(input.seExpenses) - perDiemDeduction; // can be a loss
     const interest = num(input.interest);
     const unemployment = num(input.unemployment);
     const otherIncome = num(input.otherIncome);
@@ -173,6 +184,7 @@
       overtimeDeduction: round(overtimeDeduction),
       seniorDeduction: round(seniorDeduction),
       qbiDeduction: round(qbi),
+      perDiemDeduction: round(perDiemDeduction),
       taxableIncome: round(taxable),
       incomeTax: round(incomeTax),
       childCredits: round(nonrefundableUsed),
