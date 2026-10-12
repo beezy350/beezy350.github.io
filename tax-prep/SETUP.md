@@ -46,3 +46,15 @@ domain.
 6. **Legal review:** have an attorney review `privacy.html` and the FAQ
    wording before launch.
 7. **Final check:** search both files for `[` to confirm nothing is left.
+
+## Tax Organizer (remote clients)
+
+`downloads/falcon-tax-organizer-2026.xlsx` (uploads to the estimator) and
+`downloads/falcon-tax-organizer-2026.pdf` (print or email) are generated:
+
+    python3 tax-prep/tools/build_organizer.py tax-prep/downloads/falcon-tax-organizer-2026.xlsx
+    python3 tax-prep/tools/build_organizer_pdf.py tax-prep/downloads/falcon-tax-organizer-2026.pdf
+
+After building the .xlsx, open and save it once in LibreOffice/Excel (or run a
+recalculation) so formula results are stored; the website reads the "Data" tab.
+Update the per diem rates on the Data tab and the tax-year text each year.

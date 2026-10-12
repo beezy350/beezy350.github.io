@@ -31,6 +31,21 @@
       <p class="est-private">Your answers stay on this device. Nothing is sent or saved.</p>
     </div>
 
+    <div class="org-box">
+      <div class="org-text">
+        <p class="pl-title">Prefer to fill out a form at home?</p>
+        <p class="est-help">Download our 2026 Tax Organizer, list your paychecks, cash, tips, business costs and trips, then upload it here to see your refund or amount due. Works for every filing status.</p>
+        <p class="org-links">
+          <a href="downloads/falcon-tax-organizer-2026.xlsx" download>Excel organizer (.xlsx)</a>
+          <span aria-hidden="true">·</span>
+          <a href="downloads/falcon-tax-organizer-2026.pdf" download>Printable PDF</a>
+        </p>
+      </div>
+      <label class="btn btn-primary btn-sm file-btn" for="org-file">Upload filled organizer</label>
+      <input type="file" id="org-file" accept=".xlsx" class="sr-only">
+      <p class="form-status org-status" id="org-status" role="status" aria-live="polite"></p>
+    </div>
+
     <div class="est-progress" aria-hidden="true"><span id="est-bar"></span></div>
     <p class="est-step-label" id="est-step-label"></p>
 
@@ -336,5 +351,6 @@
 <script src="js/pl.js"></script>
 <script src="js/pl-import.js"></script>
 <script src="js/interview.js"></script>
+<script src="js/organizer-import.js"></script>
 </body>
 </html>

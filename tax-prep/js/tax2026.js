@@ -83,7 +83,7 @@
     // Truck driver per diem is a business deduction for the self-employed only
     const hasBusiness = num(input.seIncome) > 0;
     const perDiemDeduction = hasBusiness
-      ? (Math.floor(num(input.perDiemFull)) * PER_DIEM.rate + Math.floor(num(input.perDiemPartial)) * PER_DIEM.rate * PER_DIEM.partialDay) * PER_DIEM.deductible
+      ? (num(input.perDiemFull) * PER_DIEM.rate + num(input.perDiemPartial) * PER_DIEM.rate * PER_DIEM.partialDay) * PER_DIEM.deductible
       : 0;
     if (!hasBusiness && (num(input.perDiemFull) || num(input.perDiemPartial))) {
       notes.push('Per diem was left out: employee drivers cannot deduct unreimbursed travel meals on their federal return. Ask your employer about a per diem reimbursement plan.');

@@ -285,6 +285,29 @@
   });
   form.addEventListener('submit', (e) => e.preventDefault());
 
+  // Fill every answer at once (used by the Tax Organizer upload), then show results
+  window.FalconEstimator = {
+    load(values) {
+      form.reset();
+      for (const [name, raw] of Object.entries(values)) {
+        const field = form.elements[name];
+        if (!field) continue;
+        if (field instanceof RadioNodeList) {
+          for (const r of field) r.checked = r.value === String(raw);
+        } else if (field.type === 'checkbox') {
+          field.checked = raw === true || raw === 1 || raw === '1' || /^(true|yes)$/i.test(String(raw));
+        } else if (field.tagName === 'SELECT') {
+          field.value = String(raw || '');
+        } else {
+          const n = Number(raw);
+          field.value = Number.isFinite(n) && n !== 0 ? String(Math.round(n * 100) / 100) : '';
+        }
+      }
+      syncQuestions();
+      show(resultsStep);
+    },
+  };
+
   syncQuestions();
   show(0, true);
 })();

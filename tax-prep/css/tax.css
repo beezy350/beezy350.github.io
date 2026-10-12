@@ -738,3 +738,11 @@ body:not(.is-trucking) .trucking-only { display: none !important; }
 .state-amount.owe { color: #A3472B; }
 .state-msg { font-size: 0.9rem; color: #4A5568; }
 .state-result .combined { font-weight: 700; color: var(--evergreen); border-top: 1px solid rgba(29, 53, 87, 0.15); padding-top: 10px; }
+
+/* ---------- Estimator: Tax Organizer box ---------- */
+.org-box { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; background: var(--white); border: 1.5px solid var(--clay-light); border-radius: 12px; padding: 16px 20px; }
+.org-text { flex: 1 1 320px; min-width: 0; }
+.org-links { margin-top: 6px; font-size: 0.9rem; display: flex; gap: 8px; flex-wrap: wrap; }
+.org-links a { color: var(--evergreen); font-weight: 600; text-decoration: underline; }
+.org-status { flex-basis: 100%; }
+.org-status:empty { display: none; }
