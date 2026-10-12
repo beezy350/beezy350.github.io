@@ -271,6 +271,35 @@
     return { year: Number(year), quarter: Number(quarter), totalMiles: round2(totalMiles), totalGallons: round2(totalGallons), mpg: round2(mpg), rows, due: dueMonth };
   }
 
+
+  // Per diem for days away from home overnight (IRS transportation M&IE rates).
+  // Partial days (leaving / returning) count at 75%. DOT-hours drivers deduct 80%.
+  function perDiem(days, rates) {
+    const r = rates || { conus: 80, oconus: 86, partialDay: 0.75, deductible: 0.8 };
+    const n = (v) => Math.max(0, Math.floor(Number(v) || 0));
+    const fullC = n(days.fullConus), partC = n(days.partialConus), fullO = n(days.fullOconus), partO = n(days.partialOconus);
+    const total = fullC * r.conus + partC * r.conus * r.partialDay + fullO * r.oconus + partO * r.oconus * r.partialDay;
+    return { days: fullC + partC + fullO + partO, total: round2(total), deductible: round2(total * r.deductible) };
+  }
+
+  // Each truck's revenue and cost per mile against the market all-in rate
+  function marketCheck(truckRows, market, equipment) {
+    const rate = market && market.spot && market.spot.allIn ? market.spot.allIn[equipment] : null;
+    return truckRows.filter((r) => r.id && r.miles > 0).map((r) => {
+      const revenuePerMile = r.income / r.miles;
+      const costPerMile = r.expenses / r.miles;
+      return {
+        id: r.id, unit: r.unit, miles: r.miles,
+        revenuePerMile: round2(revenuePerMile),
+        costPerMile: round2(costPerMile),
+        fuelPerMile: round2(r.fuel / r.miles),
+        marginPerMile: round2(revenuePerMile - costPerMile),
+        marketRate: rate,
+        vsMarket: rate != null ? round2(revenuePerMile - rate) : null,
+      };
+    });
+  }
+
   // ---------- CSV ----------
   function parseCSVText(text) {
     const rows = [];
@@ -371,7 +400,7 @@
     return lines.join('\n');
   }
 
-  const api = { CATEGORIES, BY_ID, REPAIR_ITEMS, REPAIR_BY_ID, IFTA_JURISDICTIONS, repairsBreakdown, perTruck, iftaQuarter, quarterOf, summarize, scheduleC, quarterly, importBankCSV, toCSV, parseCSVText, toISODate, toNumber };
+  const api = { CATEGORIES, BY_ID, REPAIR_ITEMS, REPAIR_BY_ID, IFTA_JURISDICTIONS, repairsBreakdown, perTruck, iftaQuarter, perDiem, marketCheck, quarterOf, summarize, scheduleC, quarterly, importBankCSV, toCSV, parseCSVText, toISODate, toNumber };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Ledger = api;
 })(typeof window !== 'undefined' ? window : globalThis);

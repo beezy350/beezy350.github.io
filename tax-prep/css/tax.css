@@ -702,3 +702,25 @@ body:not(.is-trucking) .trucking-only { display: none !important; }
 .pl-flags li.info { background: #E7F2EF; border-left-color: var(--sage); }
 .pl-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 @media (max-width: 520px) { .pl-totals { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- Falcon Books: per diem & freight market ---------- */
+.pd-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pd-result { display: flex; flex-direction: column; gap: 6px; }
+.pd-result:empty { display: none; }
+.pd-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; background: var(--linen); border-radius: 8px; font-size: 0.92rem; }
+.pd-row span { color: #5A6475; }
+.pd-row strong { color: var(--evergreen); text-align: right; font-variant-numeric: tabular-nums; }
+.pd-row.strong { background: var(--evergreen); }
+.pd-row.strong span, .pd-row.strong strong { color: var(--white); }
+#pd-add { align-self: flex-start; }
+#pd-add[disabled] { opacity: 0.5; cursor: not-allowed; }
+.stat-value.small { font-size: 1.15rem; }
+.diesel-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.market-table tr.strong-row th, .market-table tr.strong-row td { font-weight: 700; color: var(--evergreen); }
+.market-check-card { margin-top: 18px; }
+.breakdown tr.below-row td:last-child { color: #A3472B; font-weight: 700; }
+.breakdown tr.above-row td:last-child { color: var(--sage); font-weight: 700; }
+#market-sources a { color: var(--evergreen); text-decoration: underline; }
+@media (max-width: 560px) { .pd-form { grid-template-columns: minmax(0, 1fr); } }
+.market-table td { text-align: right; padding-left: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.market-table tr.head th:not(:first-child) { text-align: right; }

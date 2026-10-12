@@ -25,14 +25,16 @@
 
   // ---------- state ----------
   let profile = 'tax';
-  let state = { transactions: [], trucks: [], milesLog: [] };
+  let state = { transactions: [], trucks: [], milesLog: [], settings: {} };
+  const MARKET = window.FALCON_MARKET || null;
+  const TYPICAL_MPG = 6.5;
   let storageOk = true;
 
   function sampleTax() {
     const y = new Date().getFullYear();
     const d = (m, day) => `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return {
-      trucks: [], milesLog: [],
+      trucks: [], milesLog: [], settings: {},
       transactions: [
         { date: d(1, 6), type: 'expense', amount: 18.75, category: 'licenses', payee: 'IRS', note: 'PTIN renewal' },
         { date: d(1, 9), type: 'expense', amount: 249, category: 'education', payee: 'CE provider', note: 'AFSP course bundle' },
@@ -68,17 +70,17 @@
     ];
     const [a, b, c] = trucks.map((t) => t.id);
     const tx = [
-      { date: d(1, 8), type: 'income', amount: 18400, category: 't_freight', truck: a, payee: 'Broker: Midwest Logistics', note: '6 loads' },
-      { date: d(1, 9), type: 'income', amount: 15200, category: 't_freight', truck: b, payee: 'Broker: Lone Star Freight', note: '5 loads' },
-      { date: d(1, 10), type: 'income', amount: 17100, category: 't_freight', truck: c, payee: 'Shipper direct', note: 'Dedicated lane' },
+      { date: d(1, 8), type: 'income', amount: 14100, category: 't_freight', truck: a, payee: 'Broker: Midwest Logistics', note: '6 loads' },
+      { date: d(1, 9), type: 'income', amount: 11925, category: 't_freight', truck: b, payee: 'Broker: Lone Star Freight', note: '5 loads' },
+      { date: d(1, 10), type: 'income', amount: 13860, category: 't_freight', truck: c, payee: 'Shipper direct', note: 'Dedicated lane' },
       { date: d(1, 12), type: 'income', amount: 1450, category: 't_fsc', truck: a, payee: 'Broker: Midwest Logistics', note: '' },
       { date: d(1, 22), type: 'income', amount: 375, category: 't_accessorial', truck: b, payee: 'Broker: Lone Star Freight', note: 'Detention 5 hrs' },
-      { date: d(1, 5), type: 'expense', amount: 1424.5, category: 't_fuel', truck: a, payee: "Love's #512", gallons: 370, state: 'TX', note: '' },
-      { date: d(1, 14), type: 'expense', amount: 1250.7, category: 't_fuel', truck: a, payee: 'Pilot #331', gallons: 330, state: 'OK', note: '' },
-      { date: d(1, 6), type: 'expense', amount: 1317.9, category: 't_fuel', truck: b, payee: 'TA #77', gallons: 345, state: 'TX', note: '' },
-      { date: d(1, 20), type: 'expense', amount: 1125.75, category: 't_fuel', truck: b, payee: 'Flying J #640', gallons: 285, state: 'NM', note: '' },
-      { date: d(1, 7), type: 'expense', amount: 1484, category: 't_fuel', truck: c, payee: "Love's #208", gallons: 400, state: 'AR', note: '' },
-      { date: d(1, 18), type: 'expense', amount: 1065.9, category: 't_fuel', truck: c, payee: 'Pilot #118', gallons: 285, state: 'TN', note: '' },
+      { date: d(1, 5), type: 'expense', amount: 2257, category: 't_fuel', truck: a, payee: "Love's #512", gallons: 370, state: 'TX', note: '' },
+      { date: d(1, 14), type: 'expense', amount: 2013, category: 't_fuel', truck: a, payee: 'Pilot #331', gallons: 330, state: 'OK', note: '' },
+      { date: d(1, 6), type: 'expense', amount: 2104.5, category: 't_fuel', truck: b, payee: 'TA #77', gallons: 345, state: 'TX', note: '' },
+      { date: d(1, 20), type: 'expense', amount: 1795.5, category: 't_fuel', truck: b, payee: 'Flying J #640', gallons: 285, state: 'NM', note: '' },
+      { date: d(1, 7), type: 'expense', amount: 2380, category: 't_fuel', truck: c, payee: "Love's #208", gallons: 400, state: 'AR', note: '' },
+      { date: d(1, 18), type: 'expense', amount: 1724.25, category: 't_fuel', truck: c, payee: 'Pilot #118', gallons: 285, state: 'TN', note: '' },
       { date: d(1, 16), type: 'expense', amount: 389, category: 't_repairs', sub: 'pm', truck: a, payee: 'Rush Truck Center', note: 'PM-A service' },
       { date: d(1, 23), type: 'expense', amount: 1240, category: 't_repairs', sub: 'brakes', truck: b, payee: 'Local diesel shop', note: 'Rear brake shoes + drums' },
       { date: d(1, 25), type: 'expense', amount: 2860, category: 't_repairs', sub: 'tires_new', truck: c, payee: 'Tire shop', note: '4 drive tires' },
@@ -99,7 +101,7 @@
       { date: d(1, 15), type: 'expense', amount: 1150, category: 't_dispatch', truck: '', payee: 'Factoring co.', note: '2.5% factoring fee' },
       { date: d(1, 19), type: 'expense', amount: 312.5, category: 't_tolls', truck: b, payee: 'PrePass / tolls', note: '' },
       { date: d(1, 31), type: 'expense', amount: 6800, category: 't_contract', truck: c, payee: 'Driver: R. Lopez', note: '1099 driver, January' },
-      { date: d(1, 31), type: 'expense', amount: 480, category: 't_perdiem', truck: '', payee: 'Per diem', note: 'Owner, 6 days on road' },
+      { date: d(1, 31), type: 'expense', amount: 440, category: 't_perdiem', truck: a, payee: 'Per diem', pdDays: 6, note: 'Trip Jan 26–31: 4 full + 2 travel days' },
       { date: d(1, 24), type: 'expense', amount: 75, category: 't_compliance', truck: '', payee: 'Testing consortium', note: 'Random drug test' },
       { date: d(1, 27), type: 'expense', amount: 92.4, category: 'uncategorized', truck: '', payee: 'CAT SCALE 4410', note: 'Imported' },
     ].map((t) => ({ ...t, id: newId(), sample: true }));
@@ -108,7 +110,7 @@
       [b, 'TX', 1960], [b, 'NM', 1210], [b, 'AZ', 930],
       [c, 'AR', 1580], [c, 'TN', 1340], [c, 'MS', 760], [c, 'AL', 520],
     ].map(([truck, st, m]) => ({ id: newId(), year: y, quarter: 1, truck, state: st, miles: m, sample: true }));
-    return { trucks, milesLog: miles, transactions: tx };
+    return { trucks, milesLog: miles, transactions: tx, settings: { equipment: 'van' } };
   }
 
   function normalize(data) {
@@ -116,6 +118,7 @@
       transactions: Array.isArray(data.transactions) ? data.transactions : [],
       trucks: Array.isArray(data.trucks) ? data.trucks : [],
       milesLog: Array.isArray(data.milesLog) ? data.milesLog : [],
+      settings: data.settings && typeof data.settings === 'object' ? data.settings : {},
     };
   }
 
@@ -424,6 +427,7 @@
     $('se-note').textContent = `Estimated self-employment tax on this year's profit: ${money(s.seTax)}. Income tax depends on your other income; the 25% set-aside is a rough guide, not an exact figure.`;
 
     if (profile !== 'trucking') return;
+    renderMarketCheck(year);
     // per truck
     const pt = L.perTruck(state.transactions, year, state.trucks, state.milesLog)
       .filter((r) => r.id || r.income || r.expenses);
@@ -443,6 +447,9 @@
   function renderFleet() {
     if (profile !== 'trucking') return;
     const year = $('year').value;
+    fillTrucks($('pd-truck'), { selected: $('pd-truck').value });
+    renderPerDiem();
+    renderMarketSnapshot();
     // trucks
     $('truck-count').textContent = `${state.trucks.length} of ${MAX_TRUCKS}`;
     const list = $('truck-list');
@@ -492,6 +499,116 @@
       ml.append(li);
     }
   }
+
+
+  // ---------- per diem ----------
+  function perDiemDays() {
+    const start = $('pd-start').value, end = $('pd-end').value;
+    if (!start || !end) return { error: '' };
+    const nights = Math.round((new Date(end + 'T12:00') - new Date(start + 'T12:00')) / 86400000);
+    if (nights < 1) return { error: 'Per diem needs at least one night away from home. Pick a return date after the day you left.' };
+    if (nights > 120) return { error: 'That trip is over 120 days. Split long stretches into separate trips.' };
+    const full = nights - 1;
+    const canada = Math.min(full, Math.max(0, Math.floor(Number($('pd-canada').value) || 0)));
+    return { start, end, nights, days: { fullConus: full - canada, partialConus: 2, fullOconus: canada, partialOconus: 0 } };
+  }
+
+  function renderPerDiem() {
+    const pdRates = MARKET ? MARKET.perDiem : null;
+    $('pd-help').textContent = pdRates
+      ? `IRS transportation rate: $${pdRates.conus} a day in the U.S., $${pdRates.oconus} in Canada (${pdRates.period}). The days you leave and return count at 75%. Drivers under DOT hours-of-service rules deduct 80%.`
+      : 'IRS transportation per diem: the days you leave and return count at 75%; DOT-hours drivers deduct 80%.';
+    const calc = perDiemDays();
+    const out = $('pd-result');
+    out.innerHTML = '';
+    $('pd-add').disabled = true;
+    // keep the "Added ..." message until the user starts a new trip
+    if (calc.error) setStatus($('pd-status'), calc.error, true);
+    else if (calc.days) setStatus($('pd-status'), '');
+    if (calc.days) {
+      const r = L.perDiem(calc.days, pdRates || undefined);
+      const d = calc.days;
+      const parts = [`${d.fullConus} full U.S. day${d.fullConus === 1 ? '' : 's'}`];
+      if (d.fullOconus) parts.push(`${d.fullOconus} in Canada`);
+      parts.push('2 travel days at 75%');
+      for (const [label, value, strong] of [['Days away', `${calc.nights + 1} (${parts.join(', ')})`], ['Per diem', money(r.total), false], ['Deductible (80%)', money(r.deductible), true]]) {
+        const row = el('div', 'pd-row' + (strong ? ' strong' : ''));
+        row.append(el('span', null, label), el('strong', null, value));
+        out.append(row);
+      }
+      $('pd-add').disabled = false;
+    }
+    // year to date
+    const year = $('year').value;
+    const pdTx = state.transactions.filter((t) => t.category === 't_perdiem' && t.date.startsWith(year));
+    const days = pdTx.reduce((a, t) => a + (Number(t.pdDays) || 0), 0);
+    const total = pdTx.reduce((a, t) => a + Math.abs(t.amount), 0);
+    $('pd-ytd').textContent = pdTx.length
+      ? `${year} so far: ${days ? days + ' days on the road, ' : ''}${money(total)} per diem, ${money(total * 0.8)} deductible.`
+      : '';
+  }
+
+  $('pd-form').addEventListener('input', renderPerDiem);
+  $('pd-add').addEventListener('click', () => {
+    const calc = perDiemDays();
+    if (!calc.days) return;
+    const r = L.perDiem(calc.days, MARKET ? MARKET.perDiem : undefined);
+    const fmt = (iso) => { const [, m, d] = iso.split('-'); return `${MONTHS[Number(m) - 1]} ${Number(d)}`; };
+    state.transactions.push({
+      id: newId(), date: calc.end, type: 'expense', amount: r.total, category: 't_perdiem',
+      truck: $('pd-truck').value, payee: 'Per diem', pdDays: r.days,
+      note: `Trip ${fmt(calc.start)}–${fmt(calc.end)}: ${calc.days.fullConus + calc.days.fullOconus} full + 2 travel days`,
+    });
+    save();
+    setStatus($('pd-status'), `Added ${money(r.total)} per diem (${money(r.deductible)} deductible).`);
+    $('pd-start').value = ''; $('pd-end').value = ''; $('pd-canada').value = '0';
+    $('year').value = calc.end.slice(0, 4);
+    render();
+  });
+
+  // ---------- freight market ----------
+  function renderMarketSnapshot() {
+    if (!MARKET) { $('market-asof').textContent = 'Market data is not loaded.'; return; }
+    const m = MARKET;
+    const fmtDate = (iso) => { const [y, mo, d] = iso.split('-'); return d ? `${MONTHS[Number(mo) - 1]} ${Number(d)}, ${y}` : `${MONTHS[Number(mo) - 1]} ${y}`; };
+    $('market-asof').textContent = `National averages, updated ${fmtDate(m.asOf)}. Spot rates move weekly; use them as a guide, not a quote.`;
+    table($('market-table'), ['Per mile', 'Dry van', 'Reefer', 'Flatbed'], [
+      { cells: [`Spot, no fuel (wk of ${fmtDate(m.spot.linehaulWeek).replace(/, \d{4}$/, '')})`, money(m.spot.linehaul.van), money(m.spot.linehaul.reefer), money(m.spot.linehaul.flatbed)] },
+      { cls: 'strong-row', cells: [`All-in with fuel (${fmtDate(m.spot.allInMonth)})`, money(m.spot.allIn.van), money(m.spot.allIn.reefer), money(m.spot.allIn.flatbed)] },
+    ]);
+    const stats = $('diesel-stats');
+    stats.innerHTML = '';
+    for (const [label, value] of [['Diesel, U.S. avg', `${money(m.diesel.national)}/gal`], [`Fuel per mile at ${TYPICAL_MPG} MPG`, money(m.diesel.national / TYPICAL_MPG)], ['Cheapest region', Object.entries(m.diesel.regions).sort((a, b) => a[1] - b[1])[0].join(' ')], ['Priciest region', Object.entries(m.diesel.regions).sort((a, b) => b[1] - a[1])[0].join(' ')]]) {
+      const box = el('div', 'stat');
+      box.append(el('p', 'tile-label', label), el('p', 'stat-value small', String(value).replace(/(\d\.\d{3})$/, (x) => '$' + x)));
+      stats.append(box);
+    }
+    const src = $('market-sources');
+    src.innerHTML = '';
+    src.append(document.createTextNode(`Diesel week of ${fmtDate(m.diesel.week)}. ${m.diesel.note} Sources: `));
+    m.sources.forEach((x, i) => {
+      const a = el('a', null, x.label); a.href = x.url; a.target = '_blank'; a.rel = 'noopener';
+      src.append(a);
+      if (i < m.sources.length - 1) src.append(document.createTextNode(' · '));
+    });
+  }
+
+  function renderMarketCheck(year) {
+    const equipment = state.settings.equipment || 'van';
+    $('equipment').value = equipment;
+    const rows = L.marketCheck(L.perTruck(state.transactions, year, state.trucks, state.milesLog), MARKET, equipment);
+    const label = { van: 'dry van', reefer: 'reefer', flatbed: 'flatbed' }[equipment];
+    $('market-check-help').textContent = MARKET
+      ? `Compared with the ${label} all-in national average of ${money(MARKET.spot.allIn[equipment])} per mile (includes fuel, like your revenue does). Cost per mile is your break-even rate. Diesel today runs about ${money(MARKET.diesel.national / TYPICAL_MPG)} a mile at ${TYPICAL_MPG} MPG.`
+      : 'Market data is not loaded.';
+    table($('market-check'), ['Truck', 'Revenue / mi', 'Cost / mi (break-even)', 'Fuel / mi', 'Margin / mi', 'Market', 'Vs. market'],
+      rows.map((r) => ({
+        cls: (r.vsMarket != null && r.vsMarket < 0) ? 'below-row' : 'above-row',
+        cells: [`Unit ${r.unit}`, money(r.revenuePerMile), money(r.costPerMile), money(r.fuelPerMile), money(r.marginPerMile), r.marketRate != null ? money(r.marketRate) : '–', r.vsMarket != null ? (r.vsMarket >= 0 ? '+' : '') + money(r.vsMarket) : '–'],
+      })),
+      { empty: 'Log miles by state on the Fleet & IFTA tab to compare each truck with the market.' });
+  }
+  $('equipment').addEventListener('change', () => { state.settings.equipment = $('equipment').value; save(); renderMarketCheck($('year').value); });
 
   function render() {
     document.body.classList.toggle('is-trucking', profile === 'trucking');
@@ -630,9 +747,10 @@
         category: L.BY_ID[t.category] ? t.category : 'uncategorized', payee: String(t.payee || ''), note: String(t.note || ''),
         ...(t.truck ? { truck: String(t.truck) } : {}), ...(t.sub ? { sub: String(t.sub) } : {}),
         ...(t.gallons ? { gallons: Number(t.gallons) } : {}), ...(t.state ? { state: String(t.state) } : {}),
+        ...(t.pdDays ? { pdDays: Number(t.pdDays) } : {}),
         ...(t.sample ? { sample: true } : {}),
       }));
-      state = { transactions: clean, trucks: Array.isArray(data.trucks) ? data.trucks.slice(0, MAX_TRUCKS) : [], milesLog: Array.isArray(data.milesLog) ? data.milesLog : [] };
+      state = { transactions: clean, trucks: Array.isArray(data.trucks) ? data.trucks.slice(0, MAX_TRUCKS) : [], milesLog: Array.isArray(data.milesLog) ? data.milesLog : [], settings: data.settings && typeof data.settings === 'object' ? data.settings : {} };
       save();
       setStatus($('backup-status'), `Restored ${clean.length} transactions from ${file.name}.`);
       render();
@@ -645,7 +763,7 @@
   $('wipe-btn').addEventListener('click', () => { $('wipe-count').textContent = state.transactions.length; $('wipe-confirm').hidden = false; });
   $('wipe-no').addEventListener('click', () => { $('wipe-confirm').hidden = true; });
   $('wipe-yes').addEventListener('click', () => {
-    state = { transactions: [], trucks: state.trucks.filter((t) => !t.sample), milesLog: [] };
+    state = { transactions: [], trucks: state.trucks.filter((t) => !t.sample), milesLog: [], settings: state.settings };
     save();
     $('wipe-confirm').hidden = true;
     setStatus($('backup-status'), 'All transactions deleted.');

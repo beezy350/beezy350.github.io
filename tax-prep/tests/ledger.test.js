@@ -113,4 +113,14 @@ const ordered = L.scheduleC([
 ], 2026).map((r) => r.line || '-');
 eq(ordered, ['1', '22', '23', '24b', '27a', '-']);
 
+// Per diem: 20 full + 4 partial days in the US, 3 full + 1 partial in Canada
+const pd = L.perDiem({ fullConus: 20, partialConus: 4, fullOconus: 3, partialOconus: 1 });
+eq(pd, { days: 28, total: 20 * 80 + 4 * 60 + 3 * 86 + 64.5, deductible: Math.round((20 * 80 + 4 * 60 + 3 * 86 + 64.5) * 0.8 * 100) / 100 });
+eq(L.perDiem({ fullConus: -3, partialConus: 'x' }).total, 0, 'bad input is zero');
+
+// Market check: revenue and cost per mile vs the market rate
+const mc = L.marketCheck(L.perTruck(ttx, 2026, trucks, milesLog), { spot: { allIn: { van: 3.08 } } }, 'van');
+eq(mc.map((r) => [r.unit, r.revenuePerMile, r.costPerMile, r.vsMarket]), [['Unit 101', 3.33, 0.88, 0.25], ['Unit 102', 5, 0.8, 1.92]]);
+eq(L.marketCheck(L.perTruck(ttx, 2026, trucks, milesLog), null, 'van')[0].vsMarket, null);
+
 console.log(`All ${n} checks passed`);

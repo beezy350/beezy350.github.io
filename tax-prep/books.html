@@ -162,6 +162,18 @@
         </div>
       </div>
 
+      <div class="report-card trucking-only market-check-card">
+        <div class="ifta-head">
+          <h2>Market check: your rate per mile vs. the market</h2>
+          <div class="field">
+            <label class="sr-only" for="equipment">Equipment type</label>
+            <select id="equipment"><option value="van">Dry van</option><option value="reefer">Reefer</option><option value="flatbed">Flatbed</option></select>
+          </div>
+        </div>
+        <p class="est-help" id="market-check-help"></p>
+        <div class="table-wrap"><table class="breakdown wide" id="market-check"></table></div>
+      </div>
+
       <div class="report-grid">
         <div class="report-card">
           <h2>Schedule C summary</h2>
@@ -220,6 +232,43 @@
             <button type="submit" class="btn btn-primary btn-sm">Add miles</button>
           </form>
           <p class="form-status" id="miles-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="report-grid">
+        <div class="report-card">
+          <h2>Per diem for days on the road</h2>
+          <p class="est-help" id="pd-help"></p>
+          <form class="pd-form" id="pd-form" novalidate>
+            <div class="field">
+              <label for="pd-start">Left home</label>
+              <input type="date" id="pd-start">
+            </div>
+            <div class="field">
+              <label for="pd-end">Got back</label>
+              <input type="date" id="pd-end">
+            </div>
+            <div class="field">
+              <label for="pd-canada">Full days in Canada</label>
+              <input type="number" id="pd-canada" min="0" step="1" value="0" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label for="pd-truck">Truck</label>
+              <select id="pd-truck"></select>
+            </div>
+          </form>
+          <div class="pd-result" id="pd-result"></div>
+          <p class="form-status" id="pd-status" role="status" aria-live="polite"></p>
+          <button type="button" class="btn btn-primary btn-sm" id="pd-add" disabled>Add per diem to books</button>
+          <p class="est-help" id="pd-ytd"></p>
+        </div>
+
+        <div class="report-card">
+          <h2>Freight market snapshot</h2>
+          <p class="est-help" id="market-asof"></p>
+          <div class="table-wrap"><table class="breakdown market-table" id="market-table"></table></div>
+          <div class="ifta-stats diesel-stats" id="diesel-stats"></div>
+          <p class="est-help" id="market-sources"></p>
         </div>
       </div>
 
@@ -295,6 +344,7 @@
   </div>
 </main>
 
+<script src="data/market.js"></script>
 <script src="js/ledger.js"></script>
 <script src="js/books.js"></script>
 </body>
