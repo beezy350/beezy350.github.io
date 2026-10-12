@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Refund Estimator | Falcon Tax Solutions</title>
+<meta name="description" content="Answer a few questions to estimate your 2026 federal refund and get a personalized list of documents to bring. Nothing you enter leaves your device.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/tax.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="container nav">
+    <a href="index.html" class="nav-logo">Falcon Tax Solutions</a>
+    <a href="index.html#quote" class="nav-cta">Book a Consultation</a>
+  </nav>
+</header>
+
+<main class="estimator">
+  <div class="container est-wrap">
+
+    <div class="est-intro">
+      <p class="eyebrow">2026 tax year &middot; filed in 2027</p>
+      <h1>Refund estimator</h1>
+      <p>Answer a few questions to see a rough federal refund estimate and a list of documents to bring. It takes about 3 minutes.</p>
+      <p class="est-private">Your answers stay on this device. Nothing is sent or saved.</p>
+    </div>
+
+    <div class="est-progress" aria-hidden="true"><span id="est-bar"></span></div>
+    <p class="est-step-label" id="est-step-label"></p>
+
+    <form id="est-form" class="est-card" novalidate>
+
+      <!-- 1. About you -->
+      <section class="est-step" data-title="About you">
+        <h2>What's your filing status?</h2>
+        <p class="est-help">Not sure? Pick the closest one. We'll confirm it with you.</p>
+        <div class="choice-grid">
+          <label class="choice"><input type="radio" name="status" value="single" checked><span><strong>Single</strong>Unmarried, no qualifying dependents</span></label>
+          <label class="choice"><input type="radio" name="status" value="mfj"><span><strong>Married filing jointly</strong>One return for both spouses</span></label>
+          <label class="choice"><input type="radio" name="status" value="hoh"><span><strong>Head of household</strong>Unmarried and paying most costs for a dependent</span></label>
+          <label class="choice"><input type="radio" name="status" value="mfs"><span><strong>Married filing separately</strong>Each spouse files their own return</span></label>
+        </div>
+        <div class="check-list">
+          <label class="check"><input type="checkbox" id="you65" name="you65"> I was born before January 2, 1962 (65 or older)</label>
+          <label class="check" id="spouse65-row" hidden><input type="checkbox" id="spouse65" name="spouse65"> My spouse was born before January 2, 1962</label>
+        </div>
+      </section>
+
+      <!-- 2. Family -->
+      <section class="est-step" data-title="Family" hidden>
+        <h2>Who do you support?</h2>
+        <div class="field-grid">
+          <div class="field">
+            <label for="childrenUnder17">Children under 17 at the end of 2026</label>
+            <input type="number" id="childrenUnder17" name="childrenUnder17" min="0" max="15" step="1" value="0" inputmode="numeric">
+            <p class="est-help">Each child needs a Social Security number for the child tax credit.</p>
+          </div>
+          <div class="field">
+            <label for="otherDependents">Other dependents</label>
+            <input type="number" id="otherDependents" name="otherDependents" min="0" max="15" step="1" value="0" inputmode="numeric">
+            <p class="est-help">Older children, students, or relatives you support.</p>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" name="childcare"> I paid for childcare or daycare so I could work</label>
+      </section>
+
+      <!-- 3. Jobs -->
+      <section class="est-step" data-title="Jobs" hidden>
+        <h2>Income from jobs (W-2)</h2>
+        <p class="est-help">Use your last pay stub of the year, or your best guess. Add up all jobs, including your spouse's if filing jointly.</p>
+        <div class="field-grid">
+          <div class="field">
+            <label for="wages">Total wages for the year</label>
+            <div class="money"><input type="number" id="wages" name="wages" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">W-2 box 1</p>
+          </div>
+          <div class="field">
+            <label for="withheld">Federal tax withheld</label>
+            <div class="money"><input type="number" id="withheld" name="withheld" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">W-2 box 2</p>
+          </div>
+          <div class="field">
+            <label for="tips">Tips you received (included in wages)</label>
+            <div class="money"><input type="number" id="tips" name="tips" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">Up to $25,000 may be deductible.</p>
+          </div>
+          <div class="field">
+            <label for="overtimePremium">Overtime premium (the extra "half")</label>
+            <div class="money"><input type="number" id="overtimePremium" name="overtimePremium" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">Only the extra half of time-and-a-half counts.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Self-employment -->
+      <section class="est-step" data-title="Self-employment" hidden>
+        <h2>Did you work for yourself?</h2>
+        <p class="est-help">Gig work, rideshare, delivery, freelance, cleaning, contracting, or any 1099-NEC / 1099-K income.</p>
+        <div class="field-grid">
+          <div class="field">
+            <label for="seIncome">Business income received</label>
+            <div class="money"><input type="number" id="seIncome" name="seIncome" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+          </div>
+          <div class="field">
+            <label for="seExpenses">Business expenses</label>
+            <div class="money"><input type="number" id="seExpenses" name="seExpenses" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">Supplies, phone, business mileage, platform fees.</p>
+          </div>
+          <div class="field">
+            <label for="estimatedPayments">Estimated tax payments you made</label>
+            <div class="money"><input type="number" id="estimatedPayments" name="estimatedPayments" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">Quarterly payments sent to the IRS for 2026.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Other -->
+      <section class="est-step" data-title="Other income &amp; costs" hidden>
+        <h2>Anything else?</h2>
+        <div class="field-grid">
+          <div class="field">
+            <label for="interest">Bank interest</label>
+            <div class="money"><input type="number" id="interest" name="interest" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+          </div>
+          <div class="field">
+            <label for="unemployment">Unemployment benefits</label>
+            <div class="money"><input type="number" id="unemployment" name="unemployment" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+          </div>
+          <div class="field">
+            <label for="otherIncome">Other taxable income</label>
+            <div class="money"><input type="number" id="otherIncome" name="otherIncome" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">Retirement withdrawals, rental profit, prizes.</p>
+          </div>
+        </div>
+        <p class="est-subhead">Check any that apply in 2026:</p>
+        <div class="check-list two-col">
+          <label class="check"><input type="checkbox" name="hasInvestments"> Sold stocks, crypto, or received dividends</label>
+          <label class="check"><input type="checkbox" name="mortgage"> Paid mortgage interest</label>
+          <label class="check"><input type="checkbox" name="studentLoan"> Paid student loan interest</label>
+          <label class="check"><input type="checkbox" name="college"> Paid college tuition</label>
+          <label class="check"><input type="checkbox" name="marketplace"> Had health insurance from the Marketplace</label>
+          <label class="check"><input type="checkbox" name="retirement"> Took money from a 401(k) or IRA</label>
+          <label class="check"><input type="checkbox" name="noSsn"> Someone on the return has no SSN</label>
+          <label class="check"><input type="checkbox" name="irsLetter"> Received a letter from the IRS</label>
+        </div>
+      </section>
+
+      <!-- 6. Results -->
+      <section class="est-step est-results" data-title="Your estimate" hidden>
+        <div class="result-head">
+          <p class="eyebrow" id="res-label">Estimated federal refund</p>
+          <p class="result-amount" id="res-amount">$0</p>
+          <p class="result-sub" id="res-sub"></p>
+        </div>
+
+        <div class="result-grid">
+          <div>
+            <h3>How we got there</h3>
+            <table class="breakdown" id="res-table"></table>
+          </div>
+          <div>
+            <h3>Your document checklist</h3>
+            <ul class="doc-list" id="res-docs"></ul>
+          </div>
+        </div>
+
+        <div class="result-notes" id="res-notes" hidden>
+          <h3>Things a preparer should look at</h3>
+          <ul id="res-notes-list"></ul>
+        </div>
+
+        <p class="est-disclaimer">
+          This is a rough estimate of your 2026 federal income tax only, based on what you entered and 2026 IRS figures.
+          It does not include state tax and is not tax advice or a promise of any refund. Your actual result depends on
+          your full tax documents.
+        </p>
+
+        <div class="result-actions">
+          <a href="index.html#quote" class="btn btn-primary" id="res-book">Book a free consultation</a>
+          <button type="button" class="btn btn-outline" id="res-restart">Start over</button>
+        </div>
+      </section>
+
+      <div class="est-nav" id="est-nav">
+        <button type="button" class="btn btn-outline" id="est-back">Back</button>
+        <button type="button" class="btn btn-primary" id="est-next">Next</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="disclaimer">
+      Falcon Tax Solutions is an independent tax preparation business and is not affiliated with or endorsed by the IRS.
+      Estimates are for planning only.
+    </p>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Falcon Tax Solutions. All rights reserved.</span>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/tax2026.js"></script>
+<script src="js/interview.js"></script>
+</body>
+</html>

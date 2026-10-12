@@ -1,0 +1,193 @@
+// ============================================
+// Federal income tax estimate, tax year 2026
+// (returns filed in early 2027).
+//
+// Sources: IRS Rev. Proc. 2025-32 (brackets, standard deduction),
+// One Big Beautiful Bill Act (child tax credit, tips, overtime,
+// senior deduction), SSA 2026 wage base.
+//
+// This is a planning estimate. It leaves out capital gains rates,
+// itemized deductions, EITC, education credits, AMT, and the
+// additional Medicare tax. Update the numbers every tax year.
+// ============================================
+(function (root) {
+  const TY = 2026;
+
+  const BRACKETS = {
+    single: [[12400, 0.10], [50400, 0.12], [105700, 0.22], [201775, 0.24], [256225, 0.32], [640600, 0.35], [Infinity, 0.37]],
+    mfj:    [[24800, 0.10], [100800, 0.12], [211400, 0.22], [403550, 0.24], [512450, 0.32], [768700, 0.35], [Infinity, 0.37]],
+    mfs:    [[12400, 0.10], [50400, 0.12], [105700, 0.22], [201775, 0.24], [256225, 0.32], [384350, 0.35], [Infinity, 0.37]],
+    hoh:    [[17700, 0.10], [67450, 0.12], [105700, 0.22], [201775, 0.24], [256200, 0.32], [640600, 0.35], [Infinity, 0.37]],
+  };
+
+  const STANDARD_DEDUCTION = { single: 16100, mfj: 32200, mfs: 16100, hoh: 24150 };
+  // Extra standard deduction per person aged 65+
+  const AGE65_EXTRA = { single: 2050, hoh: 2050, mfj: 1650, mfs: 1650 };
+
+  const SENIOR_DEDUCTION = 6000;           // per person 65+, phases out 6% of MAGI over threshold
+  const SENIOR_PHASEOUT = { single: 75000, hoh: 75000, mfj: 150000 };
+
+  const TIPS_MAX = 25000;                   // per return
+  const OVERTIME_MAX = { single: 12500, hoh: 12500, mfj: 25000 };
+  const TIPS_OT_PHASEOUT = { single: 150000, hoh: 150000, mfj: 300000 }; // $100 per $1,000 over
+
+  const CTC_PER_CHILD = 2200;
+  const ACTC_MAX_PER_CHILD = 1700;          // refundable part
+  const ODC_PER_DEPENDENT = 500;
+  const CTC_PHASEOUT = { single: 200000, hoh: 200000, mfs: 200000, mfj: 400000 };
+
+  const SS_WAGE_BASE = 184500;
+  const QBI_RATE = 0.20;
+  const QBI_SIMPLE_LIMIT = { single: 200000, hoh: 200000, mfs: 200000, mfj: 400000 };
+
+  const num = (v) => Math.max(0, Number(v) || 0);
+  const round = (v) => Math.round(v);
+
+  function bracketTax(taxable, status) {
+    let tax = 0;
+    let lower = 0;
+    for (const [upper, rate] of BRACKETS[status]) {
+      if (taxable <= lower) break;
+      tax += (Math.min(taxable, upper) - lower) * rate;
+      lower = upper;
+    }
+    return tax;
+  }
+
+  function marginalRate(taxable, status) {
+    for (const [upper, rate] of BRACKETS[status]) {
+      if (taxable <= upper) return rate;
+    }
+    return 0.37;
+  }
+
+  // $100 reduction per $1,000 (or part) over the threshold
+  function phaseDown(amount, magi, threshold) {
+    if (magi <= threshold) return amount;
+    return Math.max(0, amount - Math.ceil((magi - threshold) / 1000) * 100);
+  }
+
+  function estimate(input) {
+    const status = BRACKETS[input.status] ? input.status : 'single';
+    const married = status === 'mfj';
+    const mfs = status === 'mfs';
+    const notes = [];
+
+    const wages = num(input.wages);
+    const withheld = num(input.withheld);
+    const tips = Math.min(num(input.tips), wages);
+    const overtime = Math.min(num(input.overtimePremium), wages);
+    const seNet = num(input.seIncome) - num(input.seExpenses); // can be a loss
+    const interest = num(input.interest);
+    const unemployment = num(input.unemployment);
+    const otherIncome = num(input.otherIncome);
+    const estPayments = num(input.estimatedPayments);
+    const kids = Math.floor(num(input.childrenUnder17));
+    const otherDeps = Math.floor(num(input.otherDependents));
+    const seniors = (input.you65 ? 1 : 0) + (married && input.spouse65 ? 1 : 0);
+
+    // Self-employment tax (Schedule SE)
+    let seTax = 0;
+    if (seNet >= 400) {
+      const base = seNet * 0.9235;
+      const ssRoom = Math.max(0, SS_WAGE_BASE - wages);
+      seTax = Math.min(base, ssRoom) * 0.124 + base * 0.029;
+    }
+    const halfSeTax = seTax / 2;
+
+    const totalIncome = wages + seNet + interest + unemployment + otherIncome;
+    const agi = Math.max(0, totalIncome - halfSeTax);
+
+    // Standard deduction (+ age 65 add-on)
+    const standard = STANDARD_DEDUCTION[status] + AGE65_EXTRA[status] * seniors;
+
+    // 2025 law deductions, not available married filing separately
+    let tipsDeduction = 0, overtimeDeduction = 0, seniorDeduction = 0;
+    if (mfs) {
+      if (tips || overtime || input.you65) notes.push('Tips, overtime and senior deductions are not allowed when married filing separately.');
+    } else {
+      tipsDeduction = phaseDown(Math.min(tips, TIPS_MAX), agi, TIPS_OT_PHASEOUT[status]);
+      overtimeDeduction = phaseDown(Math.min(overtime, OVERTIME_MAX[status]), agi, TIPS_OT_PHASEOUT[status]);
+      const seniorBase = SENIOR_DEDUCTION * seniors;
+      seniorDeduction = Math.max(0, seniorBase - Math.max(0, agi - SENIOR_PHASEOUT[status]) * 0.06);
+    }
+
+    const beforeQbi = Math.max(0, agi - standard - tipsDeduction - overtimeDeduction - seniorDeduction);
+
+    // Qualified business income deduction, simple case only
+    let qbi = 0;
+    const qbiBase = seNet - halfSeTax;
+    if (qbiBase > 0) {
+      if (beforeQbi <= QBI_SIMPLE_LIMIT[status]) {
+        qbi = Math.min(qbiBase * QBI_RATE, beforeQbi * QBI_RATE);
+      } else {
+        notes.push('Your income is above the simple limit for the 20% business income deduction, so it is left out. A preparer may find more.');
+      }
+    }
+
+    const taxable = Math.max(0, beforeQbi - qbi);
+    const incomeTax = bracketTax(taxable, status);
+
+    // Child tax credit + credit for other dependents
+    // phases out at $50 per $1,000 (or part) of income over the threshold
+    const ctcFull = kids * CTC_PER_CHILD + otherDeps * ODC_PER_DEPENDENT;
+    const over = Math.max(0, agi - CTC_PHASEOUT[status]);
+    const ctcAllowed = Math.max(0, ctcFull - Math.ceil(over / 1000) * 50);
+
+    const nonrefundableUsed = Math.min(ctcAllowed, incomeTax);
+    const unused = ctcAllowed - nonrefundableUsed;
+
+    // Refundable additional child tax credit
+    const earned = wages + Math.max(0, seNet - halfSeTax);
+    const kidsShare = Math.min(ctcAllowed, kids * CTC_PER_CHILD);
+    const actc = Math.min(
+      unused,
+      kidsShare,
+      kids * ACTC_MAX_PER_CHILD,
+      Math.max(0, earned - 2500) * 0.15
+    );
+
+    const totalTax = incomeTax - nonrefundableUsed + seTax;
+    const payments = withheld + estPayments + actc;
+    const result = payments - totalTax; // positive = refund
+
+    // Flags for things a preparer should check
+    const eitcLimit = kids > 0 ? (married ? 70000 : 63000) : (married ? 27000 : 20000);
+    if (!mfs && earned > 0 && agi < eitcLimit) {
+      notes.push('You may qualify for the Earned Income Tax Credit, which is not included here and could raise your refund.');
+    }
+    if (agi > (married ? 250000 : 200000)) {
+      notes.push('High earners may owe an additional 0.9% Medicare tax or 3.8% investment tax, not included here.');
+    }
+    if (input.hasInvestments) {
+      notes.push('Stock sales and dividends can be taxed at lower capital gains rates. They are not included in this estimate.');
+    }
+
+    return {
+      taxYear: TY,
+      status,
+      totalIncome: round(totalIncome),
+      agi: round(agi),
+      standardDeduction: standard,
+      tipsDeduction: round(tipsDeduction),
+      overtimeDeduction: round(overtimeDeduction),
+      seniorDeduction: round(seniorDeduction),
+      qbiDeduction: round(qbi),
+      taxableIncome: round(taxable),
+      incomeTax: round(incomeTax),
+      childCredits: round(nonrefundableUsed),
+      refundableChildCredit: round(actc),
+      seTax: round(seTax),
+      totalTax: round(totalTax),
+      withheld: round(withheld),
+      estimatedPayments: round(estPayments),
+      result: round(result),
+      marginalRate: marginalRate(taxable, status),
+      notes,
+    };
+  }
+
+  const api = { estimate, bracketTax, TY };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.Tax2026 = api;
+})(typeof window !== 'undefined' ? window : globalThis);

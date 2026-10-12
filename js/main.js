@@ -65,6 +65,19 @@ if (quoteForm) {
     statusEl.classList.toggle('error', Boolean(isError));
   };
 
+  // Prefill from the refund estimator, if the visitor came from it
+  try {
+    const intake = JSON.parse(sessionStorage.getItem('falconIntake') || 'null');
+    const notes = quoteForm.querySelector('#notes');
+    if (intake && notes && !notes.value) {
+      notes.value = intake.summary;
+      for (const [id, value] of [['filing', intake.filingType], ['status', intake.status]]) {
+        const select = quoteForm.querySelector('#' + id);
+        if (select && [...select.options].some((o) => o.text === value)) select.value = value;
+      }
+    }
+  } catch (e) { /* storage blocked or bad data */ }
+
   quoteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
