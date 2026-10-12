@@ -5,17 +5,24 @@ const navToggle = document.querySelector('.nav-toggle');
 const navLinks = document.querySelector('.nav-links');
 
 if (navToggle && navLinks) {
-  navToggle.addEventListener('click', () => {
-    const isOpen = navLinks.style.display === 'flex';
-    navLinks.style.display = isOpen ? 'none' : 'flex';
-    navLinks.style.flexDirection = 'column';
-    navLinks.style.position = 'absolute';
-    navLinks.style.top = '64px';
-    navLinks.style.right = '24px';
-    navLinks.style.background = '#FFFFFF';
-    navLinks.style.padding = '16px 24px';
-    navLinks.style.borderRadius = '10px';
-    navLinks.style.boxShadow = '0 10px 30px -10px rgba(31,59,44,0.25)';
+  const setOpen = (open) => {
+    navLinks.classList.toggle('open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+    navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  };
+  navToggle.setAttribute('aria-expanded', 'false');
+  navToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setOpen(!navLinks.classList.contains('open'));
+  });
+  // Close after choosing a link, tapping elsewhere, or pressing Escape
+  navLinks.addEventListener('click', (e) => { if (e.target.closest('a')) setOpen(false); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.nav')) setOpen(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+  // Phones fire resize when the address bar hides; only react to width changes
+  let lastWidth = window.innerWidth;
+  window.addEventListener('resize', () => {
+    if (window.innerWidth !== lastWidth) { lastWidth = window.innerWidth; setOpen(false); }
   });
 }
 

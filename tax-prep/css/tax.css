@@ -670,7 +670,7 @@ body:not(.is-trucking) .trucking-only { display: none !important; }
 }
 /* Six nav links need more room than the base site's 860px breakpoint */
 @media (max-width: 1060px) {
-  .nav-links { display: none; }
+  .nav-links:not(.open) { display: none; }
   .nav-toggle { display: block; }
   .nav { gap: 12px; }
   .nav-cta { margin-left: auto; }
