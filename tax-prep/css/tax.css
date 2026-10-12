@@ -675,3 +675,30 @@ body:not(.is-trucking) .trucking-only { display: none !important; }
   .nav { gap: 12px; }
   .nav-cta { margin-left: auto; }
 }
+
+/* ---------- P&L upload (estimator) ---------- */
+.pl-upload { border: 1.5px dashed rgba(29, 53, 87, 0.25); border-radius: var(--radius); padding: 16px 18px; background: var(--linen); display: flex; flex-direction: column; gap: 12px; }
+.pl-upload [hidden] { display: none !important; }
+.pl-upload-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.pl-upload-head > div { flex: 1 1 260px; min-width: 0; }
+.pl-upload .est-help { margin-top: 4px; }
+.pl-title { font-weight: 700; color: var(--evergreen); }
+.pl-sub { font-size: 0.88rem; color: #4A5568; }
+.pl-upload .form-status:empty { display: none; }
+.pl-table { background: var(--white); font-size: 0.88rem; }
+.pl-table th, .pl-table td { padding: 6px 8px; }
+.pl-table tr.head th:nth-child(2) { text-align: right; }
+.pl-table td:nth-child(2) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pl-table td:last-child { width: 120px; }
+.pl-table select { padding: 6px 8px; font-size: 0.85rem; }
+.pl-table tr.muted-row th, .pl-table tr.muted-row td:nth-child(2) { color: #9AA3B2; text-decoration: line-through; }
+.pl-totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pl-totals div { background: var(--white); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; }
+.pl-totals span { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: #5A6475; font-weight: 600; }
+.pl-totals strong { color: var(--evergreen); font-variant-numeric: tabular-nums; }
+.pl-flags { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 0.86rem; }
+.pl-flags:empty { display: none; }
+.pl-flags li { background: #FBF5E9; border-left: 3px solid var(--clay); padding: 8px 10px; border-radius: 4px; color: #4A5568; }
+.pl-flags li.info { background: #E7F2EF; border-left-color: var(--sage); }
+.pl-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 520px) { .pl-totals { grid-template-columns: minmax(0, 1fr); } }

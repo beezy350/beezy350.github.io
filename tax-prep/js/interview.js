@@ -134,6 +134,13 @@
     if (d.childcare) notes.push('Childcare costs may qualify for the Child and Dependent Care Credit, not included here.');
     if (d.college) notes.push('Tuition may qualify for an education credit, not included here.');
     if (d.marketplace) notes.push('Marketplace insurance must be reconciled on Form 8962 and can change your refund.');
+    // Review flags from an uploaded profit & loss file
+    const pl = window.falconPL;
+    if (pl && window.PL) {
+      const check = window.PL.federalCheck(pl.statedFederalTax, r);
+      if (check) notes.unshift(check);
+      for (const f of pl.flags) notes.push(`From ${pl.fileName}: ${f}`);
+    }
     for (const note of notes) {
       const li = document.createElement('li');
       li.textContent = note;
@@ -162,6 +169,7 @@
     form.reset();
     spouseRow.hidden = true;
     try { sessionStorage.removeItem('falconIntake'); } catch (e) { /* ignore */ }
+    window.falconPL = null;
     show(0);
   });
   form.addEventListener('submit', (e) => e.preventDefault());

@@ -102,6 +102,29 @@
       <section class="est-step" data-title="Self-employment" hidden>
         <h2>Did you work for yourself?</h2>
         <p class="est-help">Gig work, rideshare, delivery, freelance, cleaning, contracting, or any 1099-NEC / 1099-K income.</p>
+
+        <div class="pl-upload">
+          <div class="pl-upload-head">
+            <div>
+              <p class="pl-title">Have a profit &amp; loss report?</p>
+              <p class="est-help">Upload it from QuickBooks, Excel or Google Sheets (File &rarr; Download &rarr; Excel or CSV). It's read on this device and never sent anywhere.</p>
+            </div>
+            <label class="btn btn-outline btn-sm file-btn" for="pl-file">Upload Excel or CSV</label>
+            <input type="file" id="pl-file" accept=".xlsx,.xls,.csv,text/csv" class="sr-only">
+          </div>
+          <p class="form-status" id="pl-status" role="status" aria-live="polite"></p>
+          <div class="pl-review" id="pl-review" hidden>
+            <p class="pl-sub">Check how each line was read. Change any that are wrong, then use the numbers.</p>
+            <div class="table-wrap"><table class="breakdown pl-table" id="pl-table"></table></div>
+            <div class="pl-totals" id="pl-totals"></div>
+            <ul class="pl-flags" id="pl-flags"></ul>
+            <div class="pl-actions">
+              <button type="button" class="btn btn-primary btn-sm" id="pl-apply">Use these numbers</button>
+              <button type="button" class="btn btn-outline btn-sm" id="pl-cancel">Cancel</button>
+            </div>
+          </div>
+        </div>
+
         <div class="field-grid">
           <div class="field">
             <label for="seIncome">Business income received</label>
@@ -209,6 +232,8 @@
 </footer>
 
 <script src="js/tax2026.js"></script>
+<script src="js/pl.js"></script>
+<script src="js/pl-import.js"></script>
 <script src="js/interview.js"></script>
 </body>
 </html>
