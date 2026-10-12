@@ -1,0 +1,225 @@
+/* ============================================
+   TAX PREP THEME
+   Loads after ../css/style.css. Same token names
+   are reused so the base layout restyles itself.
+   ============================================ */
+:root {
+  --linen: #F4F5F7;
+  --ink: #1B2230;
+  --evergreen: #1D3557;
+  --evergreen-light: #2B4A75;
+  --sage: #3D7A6E;
+  --sage-light: #8DBFB4;
+  --clay: #C8963E;
+  --clay-light: #E8D3A6;
+}
+
+.hero p.lead,
+.prop-card p,
+.faq p { color: #4A5568; }
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.hero-badges span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--evergreen);
+  background: var(--white);
+  border: 1px solid rgba(29, 53, 87, 0.15);
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+.site-header { background: rgba(244, 245, 247, 0.92); }
+
+/* Sections that were inline-styled in the base page */
+.plain-section {
+  padding: 72px 0;
+  border-top: 1px solid rgba(29, 53, 87, 0.1);
+}
+
+.white-section { background: var(--white); }
+
+/* Six-card services grid wraps to two rows */
+#services .props-grid { row-gap: 28px; }
+
+/* ============================================
+   PRICING
+   ============================================ */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.price-card {
+  position: relative;
+  background: var(--linen);
+  border: 1px solid rgba(29, 53, 87, 0.1);
+  border-radius: 16px;
+  padding: 32px 28px;
+}
+
+.price-card.featured {
+  background: var(--evergreen);
+  color: var(--linen);
+}
+
+.price-card.featured h3,
+.price-card.featured .price { color: var(--white); }
+
+.price-card .tag {
+  position: absolute;
+  top: -12px;
+  left: 28px;
+  background: var(--clay);
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.price-card h3 { font-size: 1.2rem; }
+
+.price-card .price {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--evergreen);
+  margin: 8px 0 18px;
+}
+
+.price-card ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.price-card li::before {
+  content: "\2713";
+  color: var(--sage);
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.price-card.featured li::before { color: var(--clay-light); }
+
+.fine-print {
+  margin-top: 24px;
+  font-size: 0.85rem;
+  color: #5A6475;
+  max-width: 70ch;
+}
+
+/* ============================================
+   HOW IT WORKS
+   ============================================ */
+.steps {
+  list-style: none;
+  counter-reset: step;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.steps li {
+  counter-increment: step;
+  border-top: 2px solid var(--clay);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.steps li strong {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--white);
+}
+
+.steps li strong::before {
+  content: counter(step, decimal-leading-zero) "  ";
+  color: var(--clay-light);
+}
+
+.steps li span { color: rgba(244, 245, 247, 0.85); }
+
+/* ============================================
+   FAQ
+   ============================================ */
+.faq {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq details {
+  background: var(--white);
+  border: 1px solid rgba(29, 53, 87, 0.1);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+}
+
+.faq summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--evergreen);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-size: 1.2rem; line-height: 1; }
+.faq details[open] summary::after { content: "\2212"; }
+.faq details p { margin-top: 12px; font-size: 0.95rem; }
+
+/* ============================================
+   FORM ADDITIONS
+   ============================================ */
+.security-note {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--clay);
+  background: var(--white);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #4A5568;
+  max-width: 44ch;
+}
+
+.consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: #4A5568;
+}
+
+.consent input { width: auto; margin-top: 3px; }
+
+.disclaimer {
+  font-size: 0.78rem;
+  color: rgba(244, 245, 247, 0.6);
+  max-width: 90ch;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 860px) {
+  .pricing-grid,
+  .steps { grid-template-columns: 1fr; }
+  .price-card.featured { margin-top: 8px; }
+}
