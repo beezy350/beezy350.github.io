@@ -34,15 +34,15 @@
     <div class="org-box">
       <div class="org-text">
         <p class="pl-title">Prefer to fill out a form at home?</p>
-        <p class="est-help">Download our 2026 Tax Organizer, list your paychecks, cash, tips, business costs and trips, then upload it here to see your refund or amount due. Works for every filing status.</p>
+        <p class="est-help">Download our 2026 Tax Organizer (Excel or fillable PDF), type in your paychecks, cash, tips, business costs and trips, then upload it here to see your refund or amount due. Works for every filing status.</p>
         <p class="org-links">
           <a href="downloads/falcon-tax-organizer-2026.xlsx" download>Excel organizer (.xlsx)</a>
           <span aria-hidden="true">·</span>
-          <a href="downloads/falcon-tax-organizer-2026.pdf" download>Printable PDF</a>
+          <a href="downloads/falcon-tax-organizer-2026.pdf" download>Fillable PDF</a>
         </p>
       </div>
       <label class="btn btn-primary btn-sm file-btn" for="org-file">Upload filled organizer</label>
-      <input type="file" id="org-file" accept=".xlsx" class="sr-only">
+      <input type="file" id="org-file" accept=".xlsx,.pdf,application/pdf" class="sr-only">
       <p class="form-status org-status" id="org-status" role="status" aria-live="polite"></p>
     </div>
 
@@ -351,6 +351,7 @@
 <script src="js/pl.js"></script>
 <script src="js/pl-import.js"></script>
 <script src="js/interview.js"></script>
+<script src="js/organizer-map.js"></script>
 <script src="js/organizer-import.js"></script>
 </body>
 </html>

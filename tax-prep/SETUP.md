@@ -50,7 +50,7 @@ domain.
 ## Tax Organizer (remote clients)
 
 `downloads/falcon-tax-organizer-2026.xlsx` (uploads to the estimator) and
-`downloads/falcon-tax-organizer-2026.pdf` (print or email) are generated:
+`downloads/falcon-tax-organizer-2026.pdf` (fillable; a typed-in copy also uploads) are generated:
 
     python3 tax-prep/tools/build_organizer.py tax-prep/downloads/falcon-tax-organizer-2026.xlsx
     python3 tax-prep/tools/build_organizer_pdf.py tax-prep/downloads/falcon-tax-organizer-2026.pdf
@@ -58,3 +58,5 @@ domain.
 After building the .xlsx, open and save it once in LibreOffice/Excel (or run a
 recalculation) so formula results are stored; the website reads the "Data" tab.
 Update the per diem rates on the Data tab and the tax-year text each year.
+PDF field names are read by js/organizer-map.js; keep them stable. Scanned or
+handwritten PDFs have no form data and cannot be read automatically.
