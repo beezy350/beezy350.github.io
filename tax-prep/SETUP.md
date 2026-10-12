@@ -25,6 +25,7 @@ domain.
 | Placeholder | Where | Notes |
 |---|---|---|
 | `[$PRICE]` ×3 | index pricing | Starting fee per tier |
+| `[$PRICE]` ×4 | index trucking section | Monthly plans by fleet size + IFTA-only quarterly fee |
 | `[State whether audit support is included or extra.]` | index FAQ | One sentence |
 | `[If you are not an IRS Certifying Acceptance Agent, …]` | index FAQ | Replace with your actual ITIN process |
 | `[EFFECTIVE DATE]` | privacy | Date you publish |

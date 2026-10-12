@@ -640,3 +640,38 @@ body:not(.is-trucking) .trucking-only { display: none !important; }
 #per-truck tr > th:first-child { white-space: nowrap; }
 .stat-value { font-size: 1.55rem; line-height: 1.2; margin-top: 2px; }
 @media (max-width: 1100px) { .report-grid.trucking-only { grid-template-columns: minmax(0, 1fr); } }
+
+/* ============================================
+   TRUCKING SERVICE SECTION
+   ============================================ */
+.truck-section { background: var(--white); }
+.truck-lead { margin-top: 12px; color: #4A5568; font-size: 1.05rem; max-width: 62ch; }
+.truck-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.truck-services { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.truck-svc { border-top: 2px solid var(--evergreen); padding-top: 14px; }
+.truck-svc h3 { font-size: 1.05rem; margin-bottom: 6px; }
+.truck-svc p { color: #4A5568; font-size: 0.93rem; }
+.truck-side { display: flex; flex-direction: column; gap: 14px; }
+.truck-card { background: var(--linen); border: 1px solid rgba(29, 53, 87, 0.1); border-radius: 12px; padding: 18px 20px; }
+.truck-card .eyebrow { margin-bottom: 10px; }
+.deadlines, .truck-prices, .truck-needs { list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.93rem; }
+.deadlines li, .truck-prices li { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(29, 53, 87, 0.08); }
+.deadlines li:last-child, .truck-prices li:last-child { border-bottom: none; padding-bottom: 0; }
+.deadlines strong, .truck-prices strong { color: var(--evergreen); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.truck-needs li { padding-left: 22px; position: relative; color: #4A5568; }
+.truck-needs li::before { content: "\2713"; position: absolute; left: 0; color: var(--sage); font-weight: 700; }
+.truck-note { margin-top: 10px; font-size: 0.82rem; color: #5A6475; }
+.truck-cta { text-align: center; }
+@media (max-width: 900px) {
+  .truck-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .truck-services { grid-template-columns: minmax(0, 1fr); }
+}
+/* Six nav links need more room than the base site's 860px breakpoint */
+@media (max-width: 1060px) {
+  .nav-links { display: none; }
+  .nav-toggle { display: block; }
+  .nav { gap: 12px; }
+  .nav-cta { margin-left: auto; }
+}

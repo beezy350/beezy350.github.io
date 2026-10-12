@@ -78,6 +78,13 @@ if (quoteForm) {
     }
   } catch (e) { /* storage blocked or bad data */ }
 
+  // "Get a trucking quote" preselects the trucking service
+  const truckCta = document.getElementById('truck-cta');
+  const filingSelect = quoteForm.querySelector('#filing');
+  if (truckCta && filingSelect) {
+    truckCta.addEventListener('click', () => { filingSelect.value = 'Trucking bookkeeping / IFTA'; });
+  }
+
   quoteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
