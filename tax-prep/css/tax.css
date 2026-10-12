@@ -746,3 +746,14 @@ body:not(.is-trucking) .trucking-only { display: none !important; }
 .org-links a { color: var(--evergreen); font-weight: 600; text-decoration: underline; }
 .org-status { flex-basis: 100%; }
 .org-status:empty { display: none; }
+
+/* Falcon Books header: link to the private Scan Reader */
+.internal-links { display: flex; align-items: center; gap: 10px; }
+@media (max-width: 480px) {
+  .internal-links .nav-cta { display: inline-block; padding: 8px 12px; font-size: 0.82rem; }
+  .internal-links .internal-tag { display: none; }
+}
+@media (max-width: 360px) {
+  .nav-logo { font-size: 0.98rem; }
+  .internal-links .nav-cta { padding: 7px 9px; font-size: 0.78rem; }
+}
