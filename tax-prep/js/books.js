@@ -87,8 +87,15 @@
       { date: d(1, 30), type: 'expense', amount: 145, category: 't_repairs', sub: 'dot_inspection', truck: c, payee: 'Inspection station', note: 'Annual DOT' },
       { date: d(1, 30), type: 'expense', amount: 65, category: 't_repairs', sub: 'wash', truck: a, payee: 'Blue Beacon', note: '' },
       { date: d(1, 2), type: 'expense', amount: 4850, category: 't_insurance', truck: '', payee: 'Insurance co.', note: 'Monthly fleet premium' },
-      { date: d(1, 3), type: 'expense', amount: 189, category: 't_eld', truck: '', payee: 'ELD + load board', note: '3 units' },
-      { date: d(1, 4), type: 'expense', amount: 138, category: 't_permits', truck: '', payee: 'UCR', note: 'UCR 3-5 trucks bracket' },
+      { date: d(1, 3), type: 'expense', amount: 105, category: 't_eld', truck: '', payee: 'ELD provider', note: '3 units' },
+      { date: d(1, 3), type: 'expense', amount: 164.95, category: 't_loadboards', truck: '', payee: 'DAT', note: 'Load board, monthly' },
+      { date: d(1, 3), type: 'expense', amount: 149, category: 't_loadboards', truck: '', payee: 'Truckstop', note: 'Load board, monthly' },
+      { date: d(1, 4), type: 'expense', amount: 138, category: 't_ucr', truck: '', payee: 'UCR', note: '3-5 trucks bracket' },
+      { date: d(1, 4), type: 'expense', amount: 30, category: 't_ifta_license', truck: '', payee: 'State IFTA office', note: 'Decals, 3 trucks' },
+      { date: d(1, 11), type: 'expense', amount: 75, category: 't_permits', truck: b, payee: 'Permit service', note: 'Trip permit' },
+      { date: d(1, 26), type: 'expense', amount: 212.4, category: 't_road_tax', truck: a, payee: 'NY Dept of Taxation', note: 'NY HUT' },
+      { date: d(1, 13), type: 'expense', amount: 239, category: 't_electronics', truck: c, payee: 'Electronics store', note: 'Dash cam' },
+      { date: d(1, 13), type: 'expense', amount: 59, category: 't_software_sub', truck: '', payee: 'TMS software', note: 'Dispatch, monthly' },
       { date: d(1, 15), type: 'expense', amount: 1150, category: 't_dispatch', truck: '', payee: 'Factoring co.', note: '2.5% factoring fee' },
       { date: d(1, 19), type: 'expense', amount: 312.5, category: 't_tolls', truck: b, payee: 'PrePass / tolls', note: '' },
       { date: d(1, 31), type: 'expense', amount: 6800, category: 't_contract', truck: c, payee: 'Driver: R. Lopez', note: '1099 driver, January' },
@@ -170,6 +177,8 @@
 
   function syncFields() {
     const cat = L.BY_ID[catSelect.value] || {};
+    $('cat-hint').hidden = !cat.hint;
+    $('cat-hint').textContent = cat.hint || '';
     $('miles-field').hidden = catSelect.value !== 'car';
     $('repair-field').hidden = !cat.itemized;
     $('fuel-field').hidden = !cat.fuel;

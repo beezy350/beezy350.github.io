@@ -102,4 +102,15 @@ eq(L.iftaQuarter(ttx, milesLog, 2026, 4).due, '2027-01-31');
 // Trucking rows feed the same Schedule C summary (per diem at 80%)
 eq(L.scheduleC(ttx, 2026).find((r) => r.id === 't_perdiem').deductible, 80);
 
+// Schedule C rows run in IRS line order
+const ordered = L.scheduleC([
+  { date: '2026-01-01', type: 'expense', amount: 1, category: 't_loadboards' },
+  { date: '2026-01-01', type: 'expense', amount: 1, category: 't_electronics' },
+  { date: '2026-01-01', type: 'expense', amount: 1, category: 't_perdiem' },
+  { date: '2026-01-01', type: 'expense', amount: 1, category: 't_ucr' },
+  { date: '2026-01-01', type: 'income', amount: 1, category: 't_freight' },
+  { date: '2026-01-01', type: 'expense', amount: 1, category: 'uncategorized' },
+], 2026).map((r) => r.line || '-');
+eq(ordered, ['1', '22', '23', '24b', '27a', '-']);
+
 console.log(`All ${n} checks passed`);

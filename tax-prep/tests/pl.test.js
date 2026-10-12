@@ -84,4 +84,24 @@ eq(d.flags.some((f) => f.includes("doesn't match")), true);
 // 5. Number formats
 eq([PL.toNumber('$1,234.50'), PL.toNumber('(42.10)'), PL.toNumber('-5'), PL.toNumber('abc'), PL.toNumber(12)], [1234.5, -42.1, -5, NaN, 12]);
 
+// 6. Trucking P&L: missing IFTA and permits are flagged; trucking meals use the 80% rule
+const truckBare = PL.analyze([['Freight revenue', '150000'], ['Fuel', '52000'], ['Repairs', '9000'], ['Meals on the road', '2400'], ['Total expenses', '63400']]);
+const missingFlag = truckBare.flags.find((f) => f.startsWith('This looks like a trucking P&L'));
+eq(Boolean(missingFlag && missingFlag.includes('IFTA fuel tax') && missingFlag.includes('permits and registration')), true);
+eq(truckBare.flags.some((f) => f.includes('80% of meals')), true);
+eq(truckBare.flags.some((f) => f.startsWith('Vehicle costs')), false, 'no rideshare vehicle note for trucking');
+
+const truckFull = PL.analyze([
+  ['Freight revenue', '150000'], ['Fuel', '52000'], ['IFTA fuel tax', '1200'], ['UCR registration', '46'],
+  ['Form 2290 HVUT', '550'], ['Trip permits', '150'], ['DAT load board', '1980'], ['Truckstop subscription', '1788'],
+  ['ELD subscription', '420'], ['Dash cam (electronics)', '249'], ['Tablet and GPS electronics', '3100'],
+]);
+eq(truckFull.flags.some((f) => f.startsWith('This looks like a trucking P&L')), false, 'nothing missing');
+eq(truckFull.flags.some((f) => f.includes('"Tablet and GPS electronics"') && f.includes('de minimis')), true, 'big electronics flagged');
+eq(truckFull.flags.some((f) => f.includes('Dash cam')), false, 'small electronics not flagged');
+eq(truckFull.expenses, 52000 + 1200 + 46 + 550 + 150 + 1980 + 1788 + 420 + 249 + 3100);
+
+// Rideshare sample is not mistaken for trucking
+eq(a.flags.some((f) => f.startsWith('This looks like a trucking P&L')), false);
+
 console.log(`All ${n} checks passed`);

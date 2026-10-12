@@ -43,14 +43,23 @@
     { id: 't_loan_interest', label: 'Truck loan interest', type: 'expense', line: '16b' },
     { id: 't_hvut', label: 'Heavy vehicle use tax (Form 2290)', type: 'expense', line: '23' },
     { id: 't_ifta', label: 'IFTA fuel tax paid', type: 'expense', line: '23' },
+    { id: 't_ifta_license', label: 'IFTA license & decals', type: 'expense', line: '23' },
     { id: 't_irp', label: 'IRP plates & registration', type: 'expense', line: '23' },
-    { id: 't_permits', label: 'UCR, permits & state road taxes', type: 'expense', line: '23' },
+    { id: 't_ucr', label: 'UCR registration', type: 'expense', line: '23' },
+    { id: 't_permits', label: 'Permits (trip, fuel, oversize / overweight)', type: 'expense', line: '23' },
+    { id: 't_road_tax', label: 'State road taxes (NY HUT, KYU, NM WDT, OR weight-mile)', type: 'expense', line: '23' },
     { id: 't_tolls', label: 'Tolls, scales & parking', type: 'expense', line: '27a' },
     { id: 't_dispatch', label: 'Dispatch & factoring fees', type: 'expense', line: '10' },
     { id: 't_wages', label: 'Driver wages (W-2)', type: 'expense', line: '26' },
     { id: 't_contract', label: 'Contract drivers (1099)', type: 'expense', line: '11' },
     { id: 't_perdiem', label: 'Meals on the road (80%, DOT hours)', type: 'expense', line: '24b', deductible: 0.8 },
-    { id: 't_eld', label: 'ELD, load boards & software', type: 'expense', line: '27a' },
+    { id: 't_eld', label: 'ELD subscription', type: 'expense', line: '27a' },
+    { id: 't_loadboards', label: 'Load boards (DAT, Truckstop, 123Loadboard)', type: 'expense', line: '27a' },
+    { id: 't_software_sub', label: 'Software subscriptions (TMS, dispatch, accounting)', type: 'expense', line: '27a' },
+    { id: 't_software_buy', label: 'Software purchase, one-time', type: 'expense', line: '27a',
+      hint: 'Off-the-shelf software is usually deductible in the year bought. Items over $2,500 each may need Section 179 or depreciation (line 13).' },
+    { id: 't_electronics', label: 'Electronics (tablet, dash cam, GPS, ELD device)', type: 'expense', line: '22',
+      hint: 'Items up to $2,500 each can be expensed under the de minimis safe harbor (elect it on the return). More expensive items may need Section 179 or depreciation (line 13).' },
     { id: 't_compliance', label: 'Drug tests, DOT physicals & compliance', type: 'expense', line: '27a' },
     { id: 't_lumper', label: 'Lumper fees', type: 'expense', line: '27a' },
     { id: 't_office', label: 'Office, phone & supplies', type: 'expense', line: '18' },
@@ -172,10 +181,12 @@
       entry.deductible += t.type === 'income' ? Math.abs(t.amount) : deductibleAmount(t);
       lines.set(key, entry);
     }
+    // Schedule C order: by line number (1, 6, 8 ... 24a, 24b ... 27a); unsorted rows last
     const order = CATEGORIES.map((c) => c.id);
+    const lineKey = (l) => (l ? parseInt(l, 10) * 10 + (l.replace(/^\d+/, '').charCodeAt(0) - 96 || 0) : 9999);
     return [...lines.values()]
       .map((e) => ({ ...e, total: round2(e.total), deductible: round2(e.deductible) }))
-      .sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id) || (a.type === 'income' ? -1 : 1));
+      .sort((a, b) => lineKey(a.line) - lineKey(b.line) || order.indexOf(a.id) - order.indexOf(b.id) || (a.type === 'income' ? -1 : 1));
   }
 
   function quarterly(list, year) {

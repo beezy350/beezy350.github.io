@@ -69,6 +69,10 @@
     vehicle: /\bgas\b|fuel|vehicle|\bcar\b|auto|truck|mileage|lease|rental|insurance.*(car|auto|vehicle)/i,
     phone: /phone|cell|mobile|internet|data plan|\bdata\b/i,
     home: /home office|rent.*home|utilities/i,
+    trucking: /freight|line ?haul|fuel surcharge|ifta|diesel|\btruck|detention|lumper|load ?board|\bdat\b|truckstop|\beld\b|\breefer\b|\btrailer/i,
+    ifta: /ifta|fuel tax/i,
+    permits: /permit|\bucr\b|\birp\b|plates?\b|registration|\bhut\b|\bkyu\b|\bwdt\b|weight.?mile|road tax|2290|hvut|heavy vehicle/i,
+    bigItem: /electronic|tablet|dash ?cam|\bgps\b|laptop|computer|software (purchase|license)|one.?time software|eld device/i,
   };
 
   function analyze(rows) {
@@ -118,10 +122,22 @@
     const net = income - expenses;
     const flags = [];
     const exp = result.lines.filter((l) => l.kind === 'expense');
+    const trucking = result.lines.some((l) => RE.trucking.test(l.label));
     const meal = exp.find((l) => RE.meals.test(l.label));
-    if (meal) flags.push(`"${meal.label}": everyday meals while working locally are generally not deductible. Meals are only deductible when traveling overnight away from home (50%, or 80% for drivers under DOT hours rules).`);
+    if (meal && trucking) flags.push(`"${meal.label}": truck drivers under DOT hours-of-service rules deduct 80% of meals, only for days away from home overnight. Keep a log of days on the road (or use the per diem rate).`);
+    else if (meal) flags.push(`"${meal.label}": everyday meals while working locally are generally not deductible. Meals are only deductible when traveling overnight away from home (50%, or 80% for drivers under DOT hours rules).`);
     const veh = exp.filter((l) => RE.vehicle.test(l.label));
-    if (veh.length) flags.push(`Vehicle costs (${veh.map((l) => l.label).join(', ')}): only the business-use share is deductible, backed by a mileage log. Gas can't be combined with the standard mileage rate.`);
+    if (veh.length && !trucking) flags.push(`Vehicle costs (${veh.map((l) => l.label).join(', ')}): only the business-use share is deductible, backed by a mileage log. Gas can't be combined with the standard mileage rate.`);
+    if (trucking) {
+      const missing = [];
+      if (!exp.some((l) => RE.ifta.test(l.label))) missing.push('IFTA fuel tax');
+      if (!exp.some((l) => RE.permits.test(l.label))) missing.push('permits and registration (UCR, IRP plates, Form 2290, trip permits)');
+      if (missing.length) flags.push(`This looks like a trucking P&L, but there is no line for ${missing.join(' or ')}. Most carriers pay these every year, so check they weren't missed or lumped into another expense.`);
+      const truckRef = exp.find((l) => /truck|tractor|trailer/i.test(l.label) && /purchase|bought|equipment/i.test(l.label));
+      if (truckRef) flags.push(`"${truckRef.label}": a truck or trailer purchase is usually depreciated (Section 179 or bonus depreciation, line 13), not expensed like a repair.`);
+    }
+    const big = exp.filter((l) => RE.bigItem.test(l.label) && Math.abs(l.amount) > 2500);
+    if (big.length) flags.push(`${big.map((l) => `"${l.label}"`).join(', ')}: equipment or software over $2,500 per item may need Section 179 or depreciation instead of a full expense. Items up to $2,500 each can be expensed under the de minimis safe harbor.`);
     const ph = exp.find((l) => RE.phone.test(l.label));
     if (ph) flags.push(`"${ph.label}": deduct only the business-use percentage if the phone or plan is also personal.`);
     const home = exp.find((l) => RE.home.test(l.label));
