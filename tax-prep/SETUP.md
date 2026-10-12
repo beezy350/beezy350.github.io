@@ -5,9 +5,12 @@ Everything in `[BRACKETS]` is a placeholder. Find and replace each one in
 
 ## Business details
 
+Business name is set: **Falcon Tax Solutions**. Before launch, confirm it is
+available in your state business registry, at tmsearch.uspto.gov, and as a
+domain.
+
 | Placeholder | Where | Example |
 |---|---|---|
-| `[BUSINESS NAME]` | both pages, many places | Example Tax Services |
 | `[SERVICE AREA]` | index | Brooklyn, NY |
 | `[Phone placeholder]` | both | (555) 123-4567 |
 | `[Email placeholder]` | both | hello@yourdomain.com |

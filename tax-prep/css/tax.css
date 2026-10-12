@@ -252,3 +252,14 @@
 .legal-page p, .legal-page li { color: #4A5568; margin-bottom: 12px; }
 .legal-page ul { padding-left: 20px; }
 .footer-bottom a:hover { color: var(--white); }
+
+/* Header on small phones: keep the business name on one line by moving
+   the booking button into the menu */
+.menu-only { display: none; }
+
+@media (max-width: 480px) {
+  .nav-logo { font-size: 1.1rem; white-space: nowrap; }
+  .nav-cta { display: none; }
+  .menu-only { display: list-item; }
+  .menu-only a { color: var(--evergreen); font-weight: 700; }
+}
