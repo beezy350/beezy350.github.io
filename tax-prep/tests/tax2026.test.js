@@ -77,6 +77,8 @@ const cases = [
     { seTax: 0, qbiDeduction: 2780 }],
   ['K-1 loss offsets other income', { status: 'single', wages: 80000, k1Partnership: -10000 },
     { totalIncome: 70000, seTax: 0 }],
+  ['cross-check with a filed 2025 return (MFJ, 2 children, Schedule C only): same SE tax, AGI and ACTC; EITC is the 2026 maximum', { status: 'mfj', childrenUnder17: 2, seIncome: 81001, seExpenses: 55543 },
+    { seTax: 3597, agi: 23659, taxableIncome: 0, refundableChildCredit: 3174, eitc: 7316 }],
   ['self-employment loss lowers total income', { status: 'single', wages: 40000, seIncome: -5000 },
     { totalIncome: 35000 }],
 ];

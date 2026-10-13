@@ -167,7 +167,13 @@
     const wages = num(d.wages), se = num(d.seIncome);
     if (num(d.withheld) && !wages) q.push(`Federal withholding of $${num(d.withheld).toLocaleString('en-US')} with no W-2 wages entered. Where did it come from: unemployment (1099-G), a retirement withdrawal (1099-R), a spouse's W-2 (wages missing), backup withholding on a 1099, or estimated payments?`);
     if (num(d.stateWithheld) && !wages) q.push('State withholding with no W-2 wages entered. Confirm the source and any missing W-2.');
-    if (se) q.push('Match gross receipts to every 1099-NEC / 1099-K and the app or bank records. 1099-K gross includes platform fees, which go on line 10.');
+    if (se) {
+      q.push('Match gross receipts to every 1099-NEC / 1099-K and the app or bank records. 1099-K gross includes platform fees, which go on line 10.');
+      q.push('Schedule C line G "materially participate": answer Yes for an owner who works the business regularly (drivers, contractors). "No" makes it a passive activity.');
+    }
+    const other = items.filter((i) => /^27/.test(String(i.line))).reduce((a, i) => a + i.amount * i.share, 0);
+    if (se && other > se * 0.1) q.push(`Other expenses total $${Math.round(other).toLocaleString('en-US')} (over 10% of receipts). List each item in Part V (line 48) with receipts; large lump sums draw IRS questions.`);
+    if (se && r.eitc) q.push('Earned income credit with self-employment income: keep records that prove the business income and expenses. The IRS checks Schedule C income that lands where the credit is highest.');
     if (r.carDeduction) {
       q.push('Vehicle, Schedule C Part IV: date placed in service, business / commuting / other miles, and whether written mileage records exist.');
       q.push(r.carMethod === 'actual'
