@@ -24,6 +24,7 @@ W, H = letter
 NAVY, GOLD, INK, MUTED, BOX = (HexColor(c) for c in ["#1D3557", "#C8963E", "#1B2230", "#5A6475", "#7F8A9A"])
 SOFT = HexColor("#F4F5F7")
 M = 34
+SHEETS = 7  # cover + pages 1, 2, 3 (three sheets), 4
 
 # Filing-type editions: key -> (file name, short label, full name, colour, who qualifies)
 TYPES = {
@@ -46,12 +47,14 @@ class Sheet:
         self.c.setTitle(f"Falcon Tax Solutions - 2026 Tax Organizer ({edition})")
         self.c.setAuthor("Falcon Tax Solutions")
         self.started = False
+        self.sheet = 0
 
     def page(self, organizer_page, title, sub, cont=False):
         if self.started:
             self.footer()
             self.c.showPage()
         self.started = True
+        self.sheet += 1
         c = self.c
         c.setFillColor(NAVY)
         c.rect(0, H - 62, W, 62, fill=1, stroke=0)
@@ -80,7 +83,12 @@ class Sheet:
         c = self.c
         c.setFont("Helvetica-Oblique", 7.5)
         c.setFillColor(MUTED)
-        c.drawString(M, 18, "Print clearly in BLOCK LETTERS and dark ink. Numbers without $ or commas are fine. No Social Security or bank account numbers.")
+        c.drawString(M, 18, "Print clearly in BLOCK LETTERS and dark ink. No Social Security or bank account numbers.")
+        # sheet count on every sheet so clients send all of them
+        tag = (self.kind[1] + "  ·  " if self.kind else "") + f"SHEET {self.sheet} OF {SHEETS}"
+        c.setFont("Helvetica-Bold", 10)
+        c.setFillColor(HexColor(self.kind[3]) if self.kind else NAVY)
+        c.drawRightString(W - M, 16, tag)
 
     def section(self, y, text):
         c = self.c
@@ -138,12 +146,12 @@ def build(path, kind=None):
     s = Sheet(path, kind)
 
     # ---------- Guide ----------
-    y = s.page(0, "Your 2026 Tax Organizer", "Print it, fill it in by hand, then send us photos or a scan of pages 1 to 4.")
+    y = s.page(0, "Your 2026 Tax Organizer", f"Fill in what applies, then send photos of ALL {SHEETS} sheets, including this one.")
     y = s.section(y, "How to fill it in")
     for line in [
         "1. Use dark ink and print clearly in BLOCK LETTERS. One number per box line, e.g. 41000 or 41,000.",
         "2. Skip any section that doesn't apply to you. Empty boxes count as zero.",
-        "3. Take a flat, well-lit photo of each page (or scan it) and send all pages to Falcon Tax Solutions.",
+        f"3. Take a flat, well-lit photo of every sheet (all {SHEETS}, even blank ones) and send them to Falcon Tax Solutions.",
         "4. We'll reply with your estimated federal and state refund or amount due.",
         "5. Never write Social Security numbers or bank account numbers on this form.",
     ]:
@@ -157,6 +165,7 @@ def build(path, kind=None):
     contact(s)
     pages(s, kind)
     s.footer()
+    assert s.sheet == SHEETS, s.sheet
     s.c.save()
 
 
@@ -302,7 +311,7 @@ def pages(s, k):
     s.text(M, y + 2, "Under 17 at the end of 2026 = born in 2010 or later. " + dep_note, 8, MUTED)
     y -= 12
     y = s.table(y, [("First name", 150, False), ("Relationship", 110, False), ("Birth year", 80, False),
-                    ("Months lived with you", 110, False), ("Has an SSN? (Yes/No)", 94, False)], 8, row_h=24)
+                    ("Months lived with you", 110, False), ("SSN? Yes or No only", 94, False)], 8, row_h=24)
     y -= 6
     y = s.section(y, "Checklist (check every one that applies)")
     for _, q in CHECKLIST:

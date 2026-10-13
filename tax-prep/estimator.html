@@ -31,9 +31,9 @@
       <p class="est-private">Your answers stay on this device. Nothing is sent or saved.</p>
     </div>
 
-    <div class="org-box">
+    <details class="org-box">
+      <summary class="pl-title">Prefer to fill out a form at home? Download or upload the Tax Organizer</summary>
       <div class="org-text">
-        <p class="pl-title">Prefer to fill out a form at home?</p>
         <p class="est-help">Download our 2026 Tax Organizer (Excel or fillable PDF), type in your paychecks, cash, tips, business costs and trips, then upload it here to see your refund or amount due. Works for every filing status.</p>
         <p class="org-links">
           <a href="downloads/falcon-tax-organizer-2026.xlsx" download>Excel organizer (.xlsx)</a>
@@ -42,7 +42,7 @@
           <span aria-hidden="true">·</span>
           <a href="downloads/falcon-tax-organizer-2026-print.pdf" download>Print &amp; fill by hand (all types)</a>
         </p>
-        <p class="est-help">Prefer pen and paper? Print the form for your filing type, fill it in, and send us photos of the pages. We'll reply with your estimate.</p>
+        <p class="est-help">Prefer pen and paper? Print the form for your filing type, fill it in, and send us photos of every sheet. We'll reply with your estimate.</p>
         <p class="org-links">
           <a href="downloads/falcon-2026-single.pdf" download>Single</a>
           <span aria-hidden="true">·</span>
@@ -56,7 +56,7 @@
       <label class="btn btn-primary btn-sm file-btn" for="org-file">Upload filled organizer</label>
       <input type="file" id="org-file" accept=".xlsx,.pdf,application/pdf" class="sr-only">
       <p class="form-status org-status" id="org-status" role="status" aria-live="polite"></p>
-    </div>
+    </details>
 
     <div class="est-progress" aria-hidden="true"><span id="est-bar"></span></div>
     <p class="est-step-label" id="est-step-label"></p>
@@ -176,27 +176,27 @@
         <div class="field-grid">
           <div class="field">
             <label for="wages">Total wages for the year</label>
-            <div class="money"><input type="number" id="wages" name="wages" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="wages" name="wages" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">W-2 box 1</p>
           </div>
           <div class="field">
             <label for="withheld">Federal tax withheld</label>
-            <div class="money"><input type="number" id="withheld" name="withheld" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="withheld" name="withheld" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">W-2 box 2</p>
           </div>
           <div class="field">
             <label for="tips">Tips you received (included in wages)</label>
-            <div class="money"><input type="number" id="tips" name="tips" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="tips" name="tips" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">Up to $25,000 may be deductible.</p>
           </div>
           <div class="field">
             <label for="overtimePremium">Overtime premium (the extra "half")</label>
-            <div class="money"><input type="number" id="overtimePremium" name="overtimePremium" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="overtimePremium" name="overtimePremium" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">Only the extra half of time-and-a-half counts.</p>
           </div>
           <div class="field state-tax-only" hidden>
             <label for="stateWithheld"><span class="state-name">State</span> tax withheld</label>
-            <div class="money"><input type="number" id="stateWithheld" name="stateWithheld" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="stateWithheld" name="stateWithheld" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">W-2 box 17</p>
           </div>
         </div>
@@ -232,21 +232,21 @@
         <div class="field-grid">
           <div class="field">
             <label for="seIncome">Business income received</label>
-            <div class="money"><input type="number" id="seIncome" name="seIncome" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="seIncome" name="seIncome" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
           </div>
           <div class="field">
             <label for="seExpenses">Business expenses</label>
-            <div class="money"><input type="number" id="seExpenses" name="seExpenses" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="seExpenses" name="seExpenses" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">Supplies, phone, business mileage, platform fees.</p>
           </div>
           <div class="field">
             <label for="estimatedPayments">Estimated tax payments you made</label>
-            <div class="money"><input type="number" id="estimatedPayments" name="estimatedPayments" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="estimatedPayments" name="estimatedPayments" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">Quarterly payments sent to the IRS for 2026.</p>
           </div>
           <div class="field state-tax-only" hidden>
             <label for="stateEstimated"><span class="state-name">State</span> estimated payments</label>
-            <div class="money"><input type="number" id="stateEstimated" name="stateEstimated" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="stateEstimated" name="stateEstimated" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
           </div>
         </div>
 
@@ -274,15 +274,15 @@
         <div class="field-grid">
           <div class="field">
             <label for="interest">Bank interest</label>
-            <div class="money"><input type="number" id="interest" name="interest" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="interest" name="interest" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
           </div>
           <div class="field">
             <label for="unemployment">Unemployment benefits</label>
-            <div class="money"><input type="number" id="unemployment" name="unemployment" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="unemployment" name="unemployment" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
           </div>
           <div class="field">
             <label for="otherIncome">Other taxable income</label>
-            <div class="money"><input type="number" id="otherIncome" name="otherIncome" min="0" step="1" inputmode="decimal" placeholder="0"></div>
+            <div class="money"><input type="number" id="otherIncome" name="otherIncome" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
             <p class="est-help">Retirement withdrawals, rental profit, prizes.</p>
           </div>
         </div>
@@ -326,13 +326,13 @@
         </div>
 
         <p class="est-disclaimer">
-          This is a rough estimate of your 2026 federal income tax only, based on what you entered and 2026 IRS figures.
-          It does not include state tax and is not tax advice or a promise of any refund. Your actual result depends on
-          your full tax documents.
+          This is a rough estimate based on what you entered and 2026 IRS and state figures.
+          It is not tax advice or a promise of any refund. Your actual result depends on your full tax documents.
         </p>
 
         <div class="result-actions">
           <a href="index.html#quote" class="btn btn-primary" id="res-book">Book a free consultation</a>
+          <button type="button" class="btn btn-outline" id="res-edit">Edit my answers</button>
           <button type="button" class="btn btn-outline" id="res-restart">Start over</button>
         </div>
       </section>

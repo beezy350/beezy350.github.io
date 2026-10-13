@@ -31,6 +31,18 @@ eq([ex.seExpenses, ex.wages, ex.tips], [700, 300, 300]);
 const t = M.fromPdfFields({ trip1_leave: '2026-03-02', trip1_return: '3/9/2026', trip1_canada: '2', trip2_leave: '2026-04-01', trip2_return: '2026-04-01' }, St.NAMES);
 eq([t.isTrucker, t.perDiemFull, t.perDiemPartial], [1, 4 + 2 * 86 / 80, 2], 'same-day trip ignored');
 
+eq([M.money('$-500'), M.money('1e5'), M.money('41,000.00')], [-500, 100000, 41000]);
+eq(M.day('2/30/2026'), null, 'impossible date');
+
+// Overlapping trips count each day once
+const ov = M.fromPdfFields({ trip1_leave: '2026-03-01', trip1_return: '2026-03-31', trip2_leave: '2026-03-10', trip2_return: '2026-03-20' }, St.NAMES);
+eq([ov.perDiemFull, ov.perDiemPartial], [29, 2], 'overlap merged');
+// Only 2026 days count
+const yr = M.fromPdfFields({ trip1_leave: '2025-12-30', trip1_return: '2026-01-03' }, St.NAMES);
+eq([yr.perDiemFull, yr.perDiemPartial], [2, 1], 'clipped to 2026');
+const big = M.fromPdfFields({ trip1_leave: '2025-01-01', trip1_return: '2027-12-31' }, St.NAMES);
+eq([big.perDiemFull, big.perDiemPartial], [365, 0], 'never more than a year');
+
 eq(M.isOrganizer(['status_single', 'exp_fuel_diesel_100']), true);
 eq(M.isOrganizer(['Text1', 'Check2']), false);
 console.log(`All ${n} checks passed`);

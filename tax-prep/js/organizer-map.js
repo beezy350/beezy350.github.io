@@ -11,9 +11,11 @@
     if (v == null) return 0;
     const s = String(v).trim();
     if (!s) return 0;
-    const neg = /^\(.*\)$/.test(s) || s.startsWith('-');
-    const n = Number(s.replace(/[^0-9.]/g, ''));
-    return Number.isFinite(n) ? (neg ? -n : n) : 0;
+    const paren = /^\(.*\)$/.test(s);
+    const plain = s.replace(/[()$,\s]/g, '');
+    let n = plain ? Number(plain) : NaN;
+    if (!Number.isFinite(n)) n = (s.includes('-') ? -1 : 1) * (Number(s.replace(/[^0-9.]/g, '')) || 0);
+    return paren ? -Math.abs(n) : n;
   }
 
   // 2026-03-02, 3/2/2026, 3/2/26, 03-02-2026 -> UTC day number
@@ -26,8 +28,10 @@
       [, m, d, y] = r;
       if (y.length === 2) y = `20${y}`;
     } else return null;
-    const t = Date.UTC(Number(y), Number(m) - 1, Number(d));
-    return Number.isFinite(t) ? Math.round(t / 86400000) : null;
+    const t = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+    // reject dates that roll over, like 2/30/2026
+    if (t.getUTCMonth() !== Number(m) - 1 || t.getUTCDate() !== Number(d)) return null;
+    return Math.round(t.getTime() / 86400000);
   }
 
   const yes = (v) => v === true || /^(y|yes|true|x|1|on)$/i.test(String(v || '').trim());
@@ -67,16 +71,24 @@
       if (m) expenses += money(v) * Number(m[1]) / 100;
     }
 
-    let fullUs = 0, fullCanada = 0, travel = 0;
+    // Only 2026 days count, and a day on two overlapping trips counts once
+    // (a full day away beats a travel day).
+    const Y0 = day('2026-01-01'), Y1 = day('2026-12-31');
+    const days = new Map(); // day number -> 'full' | 'travel'
+    let fullCanada = 0;
     for (const i of rows('trip', 60)) {
       const a = day(get(`trip${i}_leave`)), b = day(get(`trip${i}_return`));
       if (a == null || b == null || b <= a) continue;
-      const full = b - a - 1;
-      const canada = Math.min(full, Math.max(0, Math.floor(money(get(`trip${i}_canada`)))));
-      fullUs += full - canada;
-      fullCanada += canada;
-      travel += 2;
+      let tripFull = 0;
+      for (let d = Math.max(a, Y0); d <= Math.min(b, Y1); d++) {
+        if (d > a && d < b) { days.set(d, 'full'); tripFull++; } else if (!days.has(d)) days.set(d, 'travel');
+      }
+      fullCanada += Math.min(tripFull, Math.max(0, Math.floor(money(get(`trip${i}_canada`)))));
     }
+    let full = 0, travel = 0;
+    for (const t of days.values()) if (t === 'full') full++; else travel++;
+    fullCanada = Math.min(fullCanada, full);
+    const fullUs = full - fullCanada;
 
     const retirement = money(get('income_retirement'));
     const out = {

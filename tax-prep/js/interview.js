@@ -52,7 +52,7 @@
     const seq = order();
     const pos = seq.indexOf(i);
     bar.style.width = i === resultsStep ? '100%' : `${Math.round((pos / seq.length) * 100)}%`;
-    label.textContent = i === resultsStep ? 'Your estimate' : `Step ${pos + 1} of ${seq.length}: ${steps[i].dataset.title}`;
+    label.textContent = i === resultsStep ? 'Your estimate' : `Step ${pos + 1}: ${steps[i].dataset.title}`;
     nav.hidden = i === resultsStep;
     backBtn.style.visibility = pos <= 0 && i !== resultsStep ? 'hidden' : 'visible';
     nextBtn.textContent = pos === seq.length - 1 ? 'See my estimate' : 'Next';
@@ -194,10 +194,10 @@
     $('res-sub').textContent = `${STATUS_NAMES[r.status]} · ${r.taxYear} tax year · ${Math.round(r.marginalRate * 100)}% top bracket`;
 
     const rows = [
+      r.perDiemDeduction && ['Truck per diem (80%), already taken out of business income', r.perDiemDeduction, 'info'],
       ['Total income', r.totalIncome],
       ['Adjusted gross income', r.agi],
       ['Standard deduction', -r.standardDeduction],
-      r.perDiemDeduction && ['Truck driver per diem (80%)', -r.perDiemDeduction],
       r.tipsDeduction && ['Tips deduction', -r.tipsDeduction],
       r.overtimeDeduction && ['Overtime deduction', -r.overtimeDeduction],
       r.seniorDeduction && ['Senior deduction', -r.seniorDeduction],
@@ -210,6 +210,7 @@
       ['Tax withheld', r.withheld],
       r.estimatedPayments && ['Estimated payments', r.estimatedPayments],
       r.refundableChildCredit && ['Refundable child credit', r.refundableChildCredit],
+      [refund ? 'Estimated refund' : 'Estimated amount you owe', Math.abs(r.result), 'sum'],
     ].filter(Boolean);
 
     const table = $('res-table');
@@ -276,6 +277,7 @@
   form.addEventListener('input', (e) => { if (/perDiem|seIncome/.test(e.target.id)) syncQuestions(); });
   nextBtn.addEventListener('click', () => { if (validStep()) next(); });
   backBtn.addEventListener('click', back);
+  $('res-edit').addEventListener('click', back);
   $('res-restart').addEventListener('click', () => {
     form.reset();
     try { sessionStorage.removeItem('falconIntake'); } catch (e) { /* ignore */ }

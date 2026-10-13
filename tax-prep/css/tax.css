@@ -418,6 +418,7 @@
 .breakdown th { text-align: left; font-weight: 400; color: #4A5568; padding: 7px 0; }
 .breakdown td { text-align: right; font-variant-numeric: tabular-nums; padding: 7px 0; white-space: nowrap; }
 .breakdown tr + tr { border-top: 1px solid rgba(29, 53, 87, 0.08); }
+.breakdown tr.info th, .breakdown tr.info td { color: var(--muted, #5A6475); font-weight: 400; font-size: 0.88em; }
 .breakdown tr.sum th, .breakdown tr.sum td { font-weight: 700; color: var(--evergreen); border-top: 1.5px solid rgba(29, 53, 87, 0.3); }
 
 .doc-list { list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.92rem; }
@@ -745,6 +746,12 @@ body:not(.is-trucking) .trucking-only { display: none !important; }
 .org-links { margin: 6px 0 10px; font-size: 0.9rem; display: flex; gap: 8px; flex-wrap: wrap; }
 .org-links a { color: var(--evergreen); font-weight: 600; text-decoration: underline; }
 .org-status { flex-basis: 100%; }
+details.org-box { display: block; }
+details.org-box[open] { display: flex; }
+details.org-box > summary { flex-basis: 100%; cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px; list-style: none; }
+details.org-box > summary::-webkit-details-marker { display: none; }
+details.org-box > summary::after { content: "+"; margin-left: auto; font-size: 1.3rem; line-height: 1; }
+details.org-box[open] > summary::after { content: "\2212"; }
 .org-status:empty { display: none; }
 
 /* Falcon Books header: link to the private Scan Reader */

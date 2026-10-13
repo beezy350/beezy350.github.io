@@ -75,9 +75,9 @@ window.ORGANIZER_FIELDS = [
 },
 {
 "name": "dep1_ssn",
-"label": "Has an SSN? (Yes/No), row 1",
+"label": "Has an SSN? (tick), row 1",
 "page": 1,
-"kind": "text"
+"kind": "check"
 },
 {
 "name": "dep2_name",
@@ -105,9 +105,9 @@ window.ORGANIZER_FIELDS = [
 },
 {
 "name": "dep2_ssn",
-"label": "Has an SSN? (Yes/No), row 2",
+"label": "Has an SSN? (tick), row 2",
 "page": 1,
-"kind": "text"
+"kind": "check"
 },
 {
 "name": "dep3_name",
@@ -135,9 +135,9 @@ window.ORGANIZER_FIELDS = [
 },
 {
 "name": "dep3_ssn",
-"label": "Has an SSN? (Yes/No), row 3",
+"label": "Has an SSN? (tick), row 3",
 "page": 1,
-"kind": "text"
+"kind": "check"
 },
 {
 "name": "dep4_name",
@@ -165,9 +165,9 @@ window.ORGANIZER_FIELDS = [
 },
 {
 "name": "dep4_ssn",
-"label": "Has an SSN? (Yes/No), row 4",
+"label": "Has an SSN? (tick), row 4",
 "page": 1,
-"kind": "text"
+"kind": "check"
 },
 {
 "name": "dep5_name",
@@ -195,9 +195,9 @@ window.ORGANIZER_FIELDS = [
 },
 {
 "name": "dep5_ssn",
-"label": "Has an SSN? (Yes/No), row 5",
+"label": "Has an SSN? (tick), row 5",
 "page": 1,
-"kind": "text"
+"kind": "check"
 },
 {
 "name": "dep6_name",
@@ -225,9 +225,9 @@ window.ORGANIZER_FIELDS = [
 },
 {
 "name": "dep6_ssn",
-"label": "Has an SSN? (Yes/No), row 6",
+"label": "Has an SSN? (tick), row 6",
 "page": 1,
-"kind": "text"
+"kind": "check"
 },
 {
 "name": "dep7_name",
@@ -255,9 +255,9 @@ window.ORGANIZER_FIELDS = [
 },
 {
 "name": "dep7_ssn",
-"label": "Has an SSN? (Yes/No), row 7",
+"label": "Has an SSN? (tick), row 7",
 "page": 1,
-"kind": "text"
+"kind": "check"
 },
 {
 "name": "dep8_name",
@@ -285,9 +285,9 @@ window.ORGANIZER_FIELDS = [
 },
 {
 "name": "dep8_ssn",
-"label": "Has an SSN? (Yes/No), row 8",
+"label": "Has an SSN? (tick), row 8",
 "page": 1,
-"kind": "text"
+"kind": "check"
 },
 {
 "name": "chk_hasInvestments",

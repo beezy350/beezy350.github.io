@@ -17,7 +17,7 @@
     single: [[12400, 0.10], [50400, 0.12], [105700, 0.22], [201775, 0.24], [256225, 0.32], [640600, 0.35], [Infinity, 0.37]],
     mfj:    [[24800, 0.10], [100800, 0.12], [211400, 0.22], [403550, 0.24], [512450, 0.32], [768700, 0.35], [Infinity, 0.37]],
     mfs:    [[12400, 0.10], [50400, 0.12], [105700, 0.22], [201775, 0.24], [256225, 0.32], [384350, 0.35], [Infinity, 0.37]],
-    hoh:    [[17700, 0.10], [67450, 0.12], [105700, 0.22], [201775, 0.24], [256200, 0.32], [640600, 0.35], [Infinity, 0.37]],
+    hoh:    [[17700, 0.10], [67450, 0.12], [105700, 0.22], [201750, 0.24], [256200, 0.32], [640600, 0.35], [Infinity, 0.37]],
   };
 
   const STANDARD_DEDUCTION = { single: 16100, mfj: 32200, mfs: 16100, hoh: 24150 };
@@ -41,9 +41,14 @@
   // travel days at 75%, 80% deductible for drivers under DOT hours rules.
   const PER_DIEM = { rate: 80, partialDay: 0.75, deductible: 0.8 };
   const QBI_RATE = 0.20;
-  const QBI_SIMPLE_LIMIT = { single: 200000, hoh: 200000, mfs: 200000, mfj: 400000 };
+  // QBI threshold (Rev. Proc. 2025-32) and OBBBA phase-in range
+  const QBI_THRESHOLD = { single: 201750, hoh: 201750, mfs: 201750, mfj: 403500 };
+  const QBI_PHASE_IN = { single: 75000, hoh: 75000, mfs: 75000, mfj: 150000 };
+  const MAX_AMOUNT = 1e9;
+  const YEAR_DAYS = 365;
 
-  const num = (v) => Math.max(0, Number(v) || 0);
+  const finite = (v) => { const n = Number(v); return Number.isFinite(n) ? Math.max(-MAX_AMOUNT, Math.min(MAX_AMOUNT, n)) : 0; };
+  const num = (v) => Math.max(0, finite(v));
   const round = (v) => Math.round(v);
 
   function bracketTax(taxable, status) {
@@ -81,14 +86,18 @@
     const tips = Math.min(num(input.tips), wages);
     const overtime = Math.min(num(input.overtimePremium), wages);
     // Truck driver per diem is a business deduction for the self-employed only
-    const hasBusiness = num(input.seIncome) > 0;
+    const seIncome = finite(input.seIncome); // a business loss can be negative
+    const hasBusiness = seIncome !== 0;
+    // a year has 365 days: full days first, then travel days
+    const pdFull = Math.min(num(input.perDiemFull), YEAR_DAYS);
+    const pdPartial = Math.min(num(input.perDiemPartial), YEAR_DAYS - pdFull);
     const perDiemDeduction = hasBusiness
-      ? (num(input.perDiemFull) * PER_DIEM.rate + num(input.perDiemPartial) * PER_DIEM.rate * PER_DIEM.partialDay) * PER_DIEM.deductible
+      ? (pdFull * PER_DIEM.rate + pdPartial * PER_DIEM.rate * PER_DIEM.partialDay) * PER_DIEM.deductible
       : 0;
     if (!hasBusiness && (num(input.perDiemFull) || num(input.perDiemPartial))) {
       notes.push('Per diem was left out: employee drivers cannot deduct unreimbursed travel meals on their federal return. Ask your employer about a per diem reimbursement plan.');
     }
-    const seNet = num(input.seIncome) - num(input.seExpenses) - perDiemDeduction; // can be a loss
+    const seNet = seIncome - num(input.seExpenses) - perDiemDeduction; // can be a loss
     const interest = num(input.interest);
     const unemployment = num(input.unemployment);
     const otherIncome = num(input.otherIncome);
@@ -99,7 +108,7 @@
 
     // Self-employment tax (Schedule SE)
     let seTax = 0;
-    if (seNet >= 400) {
+    if (seNet * 0.9235 >= 400) {
       const base = seNet * 0.9235;
       const ssRoom = Math.max(0, SS_WAGE_BASE - wages);
       seTax = Math.min(base, ssRoom) * 0.124 + base * 0.029;
@@ -129,10 +138,13 @@
     let qbi = 0;
     const qbiBase = seNet - halfSeTax;
     if (qbiBase > 0) {
-      if (beforeQbi <= QBI_SIMPLE_LIMIT[status]) {
-        qbi = Math.min(qbiBase * QBI_RATE, beforeQbi * QBI_RATE);
-      } else {
-        notes.push('Your income is above the simple limit for the 20% business income deduction, so it is left out. A preparer may find more.');
+      // Above the threshold the deduction phases down to zero over the
+      // phase-in range (sole proprietor with no W-2 payroll or property).
+      const over = Math.max(0, beforeQbi - QBI_THRESHOLD[status]);
+      const keep = Math.max(0, 1 - over / QBI_PHASE_IN[status]);
+      qbi = Math.min(qbiBase * QBI_RATE * keep, beforeQbi * QBI_RATE);
+      if (over > 0) {
+        notes.push('Your income is above the limit for the full 20% business income deduction, so it is reduced here. Paying wages or owning business property can change this; a preparer will check.');
       }
     }
 

@@ -25,6 +25,12 @@ const cases = [
     { perDiemDeduction: 14720, agi: Math.round(45280 - 45280 * 0.9235 * 0.153 / 2) }],
   ['per diem ignored for W-2 drivers', { status: 'single', wages: 60000, perDiemFull: 100 },
     { perDiemDeduction: 0, taxableIncome: 43900 }],
+  ['SE tax only when net earnings (92.35%) reach $400', { status: 'single', seIncome: 420 },
+    { seTax: 0 }],
+  ['per diem capped at 365 days', { status: 'single', seIncome: 500000, perDiemFull: 5000, perDiemPartial: 10 },
+    { perDiemDeduction: 365 * 80 * 0.8 }],
+  ['self-employment loss lowers total income', { status: 'single', wages: 40000, seIncome: -5000 },
+    { totalIncome: 35000 }],
 ];
 
 let failed = 0;
@@ -38,5 +44,11 @@ for (const [name, input, expected] of cases) {
 // bracket boundaries
 assert.strictEqual(Math.round(bracketTax(12400, 'single')), 1240);
 assert.strictEqual(Math.round(bracketTax(24800, 'mfj')), 2480);
+assert.strictEqual(Math.round(bracketTax(210000, 'hoh')), 41847, 'HoH 24% bracket ends at 201,750');
+// QBI phases down over $75k above the $201,750 threshold instead of dropping off a cliff
+const q = (se) => estimate({ status: 'single', seIncome: se });
+assert.ok(q(236000).qbiDeduction > 0, 'QBI still partly allowed inside the phase-in');
+assert.ok(q(236000).totalTax - q(230000).totalTax < 3000, 'no tax cliff at the QBI threshold');
+assert.strictEqual(q(400000).qbiDeduction, 0, 'QBI gone above threshold + phase-in');
 console.log(failed ? `${failed} check(s) failed` : `All ${cases.length} cases passed`);
 process.exit(failed ? 1 : 0);

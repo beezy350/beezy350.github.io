@@ -110,6 +110,10 @@ class Form:
         for r in range(rows):
             x = M
             for head, w, money, key in cols:
+                if key == "ssn":  # a tick box, so nobody types the actual number
+                    self.check(x + (w - 10) / 2, y + 1, f"{prefix}{r + 1}_{key}", f"{head}, row {r + 1}")
+                    x += w
+                    continue
                 pad = 9 if money else 1
                 self.text(x + pad, y, w - pad - 2, min(13, row_h - 1.5), name=f"{prefix}{r + 1}_{key}", tip=f"{head}, row {r + 1}", money=money)
                 x += w
@@ -149,7 +153,7 @@ def build(path):
     f.label(M, y + 2, "Children under 17 at the end of 2026 were born in 2010 or later. Leave empty if you have no dependents.", 7.5, MUTED)
     y -= 14
     y = f.table(y, [("First name", 150, False, "name"), ("Relationship", 120, False, "rel"), ("Birth year", 80, False, "year"),
-                    ("Months lived with you", 100, False, "months"), ("Has an SSN? (Yes/No)", 90, False, "ssn")], 8, "dep")
+                    ("Months lived with you", 100, False, "months"), ("Has an SSN? (tick)", 90, False, "ssn")], 8, "dep")
     y -= 6
     y = f.section(y, "Checklist (check every one that applies)")
     for key, q in CHECKLIST:

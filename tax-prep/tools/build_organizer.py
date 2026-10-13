@@ -273,7 +273,7 @@ def build(sample=False):
     hh["A11"].font = font(size=12, bold=True, color=NAVY)
     header(hh, 12, ["First name", "Relationship", "Birth year", "Months lived with you", "Has an SSN? (Yes/No)"])
     example(hh, 13, ["Example: Maya", "Daughter", 2016, 12, "Yes"], [None, None, YEAR, None, None])
-    dv_yes2 = DataValidation(type="list", formula1='"Yes,No"', allow_blank=True)
+    dv_yes2 = DataValidation(type="list", formula1='"Yes,No"', allow_blank=True, showErrorMessage=True, error='Choose Yes or No. Never type a Social Security number here.')
     hh.add_data_validation(dv_yes2)
     for rr in range(14, 24):
         for col in range(1, 6):
@@ -380,8 +380,11 @@ def build(sample=False):
         inp(tp.cell(row=rr, column=1), "yyyy-mm-dd")
         inp(tp.cell(row=rr, column=2), "yyyy-mm-dd")
         inp(tp.cell(row=rr, column=3), "0")
-        tp.cell(row=rr, column=4, value=f'=IF(AND(ISNUMBER(A{rr}),ISNUMBER(B{rr}),B{rr}>A{rr}),B{rr}-A{rr}-1,0)').number_format = "0"
-        tp.cell(row=rr, column=5, value=f'=IF(AND(ISNUMBER(A{rr}),ISNUMBER(B{rr}),B{rr}>A{rr}),2,0)').number_format = "0"
+        ok = f"AND(ISNUMBER(A{rr}),ISNUMBER(B{rr}),B{rr}>A{rr})"
+        in_year = lambda c: f"AND({c}>=DATE(2026,1,1),{c}<=DATE(2026,12,31))"
+        # only 2026 days count
+        tp.cell(row=rr, column=4, value=f'=IF({ok},MAX(0,MIN(B{rr}-1,DATE(2026,12,31))-MAX(A{rr}+1,DATE(2026,1,1))+1),0)').number_format = "0"
+        tp.cell(row=rr, column=5, value=f'=IF({ok},{in_year(f"A{rr}")}*1+{in_year(f"B{rr}")}*1,0)').number_format = "0"
         f = tp.cell(row=rr, column=6, value=f"=(D{rr}-MIN(C{rr},D{rr}))*Data!$C$40+MIN(C{rr},D{rr})*Data!$C$41+E{rr}*Data!$C$40*Data!$C$42")
         f.number_format = MONEY
     tr = 36
@@ -398,7 +401,7 @@ def build(sample=False):
     c.font = font(bold=True)
     c.fill = TOTAL_FILL
     note(tp, "A39", "IRS transportation per diem (Notice 2026-60): $80/day in the U.S., $86 in Canada. The day you leave and the day you "
-                    "return count at 75%. Drivers under DOT hours-of-service rules deduct 80%. Employee (W-2) drivers can't deduct this on "
+                    "return count at 75%. Only 2026 days count; don't list the same day on two trips. Drivers under DOT hours-of-service rules deduct 80%. Employee (W-2) drivers can't deduct this on "
                     "their federal return. Keep your logbook or ELD records.")
     tp.merge_cells("A39:F41")
     protect(tp)
@@ -471,7 +474,7 @@ def build(sample=False):
         ("estimatedPayments", "Federal estimated payments", "=Payments!B9"),
         ("stateEstimated", "State estimated payments", "=Payments!D9"),
         ("isTrucker", "Logged truck driver trips", "=IF(Trips!D36+Trips!E36>0,1,0)"),
-        ("perDiemFull", "Full days away (Canada days converted to $80 days)", "=ROUND(Trips!D36-Trips!C36+Trips!C36*C41/C40,2)"),
+        ("perDiemFull", "Full days away (Canada days converted to $80 days)", "=ROUND(MIN(365,Trips!D36+SUMPRODUCT((Trips!C6:C35<Trips!D6:D35)*Trips!C6:C35+(Trips!C6:C35>=Trips!D6:D35)*Trips!D6:D35)*(C41/C40-1)),2)"),
         ("perDiemPartial", "Travel days (75%)", "=Trips!E36"),
         ("interest", "Bank interest", "=Income!C25"),
         ("unemployment", "Unemployment", "=Income!C26"),
