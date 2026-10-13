@@ -125,6 +125,10 @@ EXPENSES = [
 
 RIDESHARE_GROUP = "RIDESHARE & DELIVERY"
 
+# Schedule K-1 types and rows on the Income tab
+K1_TYPES = ("Partnership / LLC (1065)", "S-corp (1120-S)")
+K1_ROWS = 4
+
 # Retirement & health savings rows on the Income tab: (row, label, form, kind)
 SAVINGS = [
     (34, "Traditional IRA contribution: you", "Form 5498", "money"),
@@ -396,6 +400,29 @@ def build(sample=False):
     note(ic, "A42", "Traditional IRA only (Roth contributions aren't deductible). Contributions made by April 15, 2027 can count for 2026. "
                     "HSA: only what you put in yourself, not payroll contributions (W-2 code W).")
     ic.merge_cells("A42:C43")
+
+    # K-1s from partnerships, multi-member LLCs and S-corps
+    ic["A45"] = "K-1 income (partnership, LLC or S-corp owners)"
+    ic["A45"].font = font(size=12, bold=True, color=NAVY)
+    header(ic, 46, ["Type of K-1", "Business name (optional)", "Box 1 ordinary income (loss)",
+                    "Box 4c guaranteed payments (1065 only)", "Box 14 code A SE earnings (1065 only)", "SE earnings used"])
+    ic.column_dimensions["D"].width = 20
+    ic.column_dimensions["E"].width = 20
+    ic.column_dimensions["F"].width = 16
+    dv_k1 = DataValidation(type="list", formula1=f'"{K1_TYPES[0]},{K1_TYPES[1]}"', allow_blank=True)
+    ic.add_data_validation(dv_k1)
+    for rr in range(47, 47 + K1_ROWS):
+        inp(ic.cell(row=rr, column=1)); dv_k1.add(f"A{rr}")
+        inp(ic.cell(row=rr, column=2))
+        for col in (3, 4, 5):
+            inp(ic.cell(row=rr, column=col), MONEY)
+        c = ic.cell(row=rr, column=6, value=f'=IF(A{rr}="{K1_TYPES[0]}",IF(E{rr}="",N(C{rr})+N(D{rr}),N(E{rr})),0)')
+        c.number_format = MONEY
+        c.fill = TOTAL_FILL
+    k1_last = 46 + K1_ROWS
+    note(ic, f"A{k1_last + 2}", "Copy the boxes from each Schedule K-1. Losses can be limited by basis and passive rules; we'll check. "
+                                "S-corp owners: your salary is on your W-2 (Jobs tab), not here.")
+    ic.merge_cells(f"A{k1_last + 2}:F{k1_last + 3}")
     protect(ic)
 
     # ---------------- Expenses ----------------
@@ -602,6 +629,10 @@ def build(sample=False):
         ("hsaContribution", "HSA contributions", "=N(Income!C38)"),
         ("hsaFamily", "HSA family coverage", '=IF(TRIM(Income!C39)="Family",1,0)'),
         ("sepContribution", "SEP / solo 401(k)", "=N(Income!C40)"),
+        ("k1Partnership", "K-1 box 1, partnerships / LLCs", f'=SUMIF(Income!A47:A50,"{K1_TYPES[0]}",Income!C47:C50)'),
+        ("k1Guaranteed", "K-1 guaranteed payments", f'=SUMIF(Income!A47:A50,"{K1_TYPES[0]}",Income!D47:D50)'),
+        ("k1SCorp", "K-1 box 1, S-corps", f'=SUMIF(Income!A47:A50,"{K1_TYPES[1]}",Income!C47:C50)'),
+        ("k1Se", "K-1 self-employment earnings", "=SUM(Income!F47:F50)"),
         ("you50", "You 50 or older (born 1976 or earlier)", '=IF(AND(ISNUMBER(Household!B6),Household!B6>0,Household!B6<=1976),1,0)'),
         ("spouse50", "Spouse 50 or older", '=IF(AND(ISNUMBER(Household!B7),Household!B7>0,Household!B7<=1976),1,0)'),
         ("you55", "You 55 or older (HSA catch-up)", '=IF(AND(ISNUMBER(Household!B6),Household!B6>0,Household!B6<=1971),1,0)'),

@@ -710,24 +710,6 @@ window.ORGANIZER_FIELDS = [
 "kind": "text"
 },
 {
-"name": "se8_payer",
-"label": "Payer or description, row 8",
-"page": 2,
-"kind": "text"
-},
-{
-"name": "se8_type",
-"label": "Type (1099-NEC/1099-K/Cash/App), row 8",
-"page": 2,
-"kind": "text"
-},
-{
-"name": "se8_amount",
-"label": "Amount received, row 8",
-"page": 2,
-"kind": "text"
-},
-{
 "name": "income_cashtips",
 "label": "Cash tips NOT reported to your employer",
 "page": 2,
@@ -810,6 +792,126 @@ window.ORGANIZER_FIELDS = [
 "label": "HSA is family coverage (not self-only)",
 "page": 2,
 "kind": "check"
+},
+{
+"name": "k11_name",
+"label": "Business name (optional), row 1",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k11_scorp",
+"label": "S-corp? (tick), row 1",
+"page": 2,
+"kind": "check"
+},
+{
+"name": "k11_box1",
+"label": "Box 1 ordinary income (loss), row 1",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k11_gp",
+"label": "Box 4c guaranteed pmts (1065), row 1",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k11_se",
+"label": "Box 14A SE earnings (1065), row 1",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k12_name",
+"label": "Business name (optional), row 2",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k12_scorp",
+"label": "S-corp? (tick), row 2",
+"page": 2,
+"kind": "check"
+},
+{
+"name": "k12_box1",
+"label": "Box 1 ordinary income (loss), row 2",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k12_gp",
+"label": "Box 4c guaranteed pmts (1065), row 2",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k12_se",
+"label": "Box 14A SE earnings (1065), row 2",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k13_name",
+"label": "Business name (optional), row 3",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k13_scorp",
+"label": "S-corp? (tick), row 3",
+"page": 2,
+"kind": "check"
+},
+{
+"name": "k13_box1",
+"label": "Box 1 ordinary income (loss), row 3",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k13_gp",
+"label": "Box 4c guaranteed pmts (1065), row 3",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k13_se",
+"label": "Box 14A SE earnings (1065), row 3",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k14_name",
+"label": "Business name (optional), row 4",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k14_scorp",
+"label": "S-corp? (tick), row 4",
+"page": 2,
+"kind": "check"
+},
+{
+"name": "k14_box1",
+"label": "Box 1 ordinary income (loss), row 4",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k14_gp",
+"label": "Box 4c guaranteed pmts (1065), row 4",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "k14_se",
+"label": "Box 14A SE earnings (1065), row 4",
+"page": 2,
+"kind": "text"
 },
 {
 "name": "exp_advertising_marketing_100",

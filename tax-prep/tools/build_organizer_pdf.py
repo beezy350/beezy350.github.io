@@ -112,7 +112,7 @@ class Form:
         for r in range(rows):
             x = M
             for head, w, money, key in cols:
-                if key == "ssn":  # a tick box, so nobody types the actual number
+                if key in ("ssn", "scorp"):  # tick boxes (no SSN is ever typed)
                     self.check(x + (w - 10) / 2, y + 1, f"{prefix}{r + 1}_{key}", f"{head}, row {r + 1}")
                     x += w
                     continue
@@ -174,7 +174,7 @@ def build(path):
     f.label(M, y + 2, "Overtime premium = only the extra 'half' of time-and-a-half.", 7.5, MUTED)
     y -= 18
     y = f.section(y, "Self-employment & cash income (1099-NEC, 1099-K, cash, Zelle, checks)")
-    y = f.table(y, [("Payer or description", 260, False, "payer"), ("Type (1099-NEC/1099-K/Cash/App)", 150, False, "type"), ("Amount received", 110, True, "amount")], 8, "se")
+    y = f.table(y, [("Payer or description", 260, False, "payer"), ("Type (1099-NEC/1099-K/Cash/App)", 150, False, "type"), ("Amount received", 110, True, "amount")], 7, "se")
     y -= 4
     y = f.section(y, "Other income")
     for key, lab in [("cashtips", "Cash tips NOT reported to your employer"), ("interest", "Bank interest (1099-INT)"),
@@ -193,13 +193,21 @@ def build(path):
                      ("sep_amount", "SEP-IRA or solo 401(k) contributions (self-employed)")]:
         f.label(M, y + 3, lab, 8.5)
         f.text(M + 330, y, 110, name=key, tip=lab, money=True)
-        y -= 18
+        y -= 16
     for key, lab in [("ira_covered_you", "You are covered by a retirement plan at work (W-2 box 13)"),
                      ("ira_covered_spouse", "Spouse is covered by a retirement plan at work"),
                      ("hsa_family", "HSA is family coverage (not self-only)")]:
         f.check(M, y, key, lab)
         f.label(M + 16, y + 2, lab, 8.5)
-        y -= 16
+        y -= 14
+
+    y -= 2
+    y = f.section(y, "K-1 income (partnership, LLC or S-corp owners)")
+    y = f.table(y, [("Business name (optional)", 150, False, "name"), ("S-corp? (tick)", 62, False, "scorp"),
+                    ("Box 1 ordinary income (loss)", 110, True, "box1"), ("Box 4c guaranteed pmts (1065)", 110, True, "gp"),
+                    ("Box 14A SE earnings (1065)", 108, True, "se")], 4, "k1", row_h=14)
+    f.label(M, y + 2, "Not ticked = partnership / LLC (Form 1065). S-corp owners: your salary goes in the W-2 jobs table.", 7, MUTED)
+    assert y > 40, f"page 2 overflow ({y})"
 
     # ---------- Page 3: expenses ----------
     y = f.new_page("Business expenses", "Self-employed only. Enter the full amount paid in 2026; we apply the meal limits and depreciation rules.")

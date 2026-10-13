@@ -37,6 +37,7 @@
     // tax withheld on Social Security / 1099-R / 1099-G counts with W-2 withholding
     data.withheld = (Number(data.withheld) || 0) + (Number(data.otherWithheld) || 0);
     if (!data.isTrucker) { data.perDiemFull = 0; data.perDiemCanada = 0; data.perDiemPartial = 0; }
+    if (!data.hasK1) { data.k1Partnership = 0; data.k1Guaranteed = 0; data.k1SCorp = 0; data.k1Se = ''; }
     if (!data.usesCar) { data.carMilesH1 = 0; data.carMilesH2 = 0; data.carMilesTotal = 0; data.carCosts = 0; }
     return data;
   }
@@ -105,6 +106,7 @@
     form.querySelectorAll('.state-tax-only').forEach((el) => { el.hidden = !taxed; });
     form.querySelectorAll('.state-name').forEach((el) => { el.textContent = St && d.state ? St.NAMES[d.state] : 'State'; });
 
+    $('k1-box').hidden = !$('hasK1').checked;
     $('car-box').hidden = !$('usesCar').checked;
     if ($('usesCar').checked && window.Tax2026) {
       const c = window.Tax2026.estimate({ status: 'single', seIncome: Number($('seIncome').value) || 1,
@@ -135,6 +137,7 @@
     if (n(d.seIncome)) docs.push('1099-NEC / 1099-K forms and your business income records', 'Receipts or a list of business expenses');
     if (n(d.seIncome) && !d.usesCar) docs.push('Mileage log for business driving');
     if (n(d.seIncome) && d.usesCar) docs.push('Mileage log or the rideshare app’s yearly tax summary (online miles)', 'Odometer readings for Jan 1 and Dec 31', 'Receipts for car costs (gas, rental, insurance, repairs)');
+    if (d.hasK1) docs.push('Schedule K-1 from each partnership, LLC or S-corp (all pages, including any state K-1)');
     if (d.isTrucker) docs.push('Logbook or ELD records showing days away from home');
     if (n(d.estimatedPayments)) docs.push('Dates and amounts of estimated tax payments');
     if (n(d.interest)) docs.push('1099-INT from your bank');
@@ -223,6 +226,7 @@
       r.carDeduction && [`Car (${r.carMethod === 'actual' ? 'actual costs, business share' : 'IRS mileage rate'}), already taken out of business income`, r.carDeduction, 'info'],
       r.perDiemDeduction && ['Truck per diem (80%), already taken out of business income', r.perDiemDeduction, 'info'],
       r.taxableSocialSecurity && [`Taxable Social Security (of ${money(r.socialSecurity)}), included in total income`, r.taxableSocialSecurity, 'info'],
+      r.k1Income && ['Schedule K-1 income, included in total income', r.k1Income, 'info'],
       ['Total income', r.totalIncome],
       r.halfSeTax && ['Half of self-employment tax', -r.halfSeTax],
       r.sepDeduction && ['SEP / solo 401(k) deduction', -r.sepDeduction],
@@ -258,6 +262,8 @@
     }
 
     const st = renderState(d, r);
+    // S-corp savings usually start around $50k+ of business profit
+    $('res-scorp').hidden = !(Number(d.seIncome) - Number(d.seExpenses || 0) - r.carDeduction - r.perDiemDeduction >= 50000);
 
     const docList = $('res-docs');
     docList.innerHTML = '';
@@ -307,7 +313,11 @@
     // Step count changes when the dependents answer changes
     if (e.target.name === 'hasDeps' && current !== resultsStep) show(current, true);
   });
-  form.addEventListener('input', (e) => { if (/perDiem|seIncome|car/.test(e.target.id)) syncQuestions(); });
+  form.addEventListener('input', (e) => {
+    if (/perDiem|seIncome|car/.test(e.target.id)) syncQuestions();
+    // box 14A from an uploaded K-1 no longer matches once the K-1 amounts are edited
+    if (/^k1(Partnership|Guaranteed)$/.test(e.target.id)) $('k1Se').value = '';
+  });
   nextBtn.addEventListener('click', () => { if (validStep()) next(); });
   backBtn.addEventListener('click', back);
   $('res-edit').addEventListener('click', back);
@@ -348,6 +358,9 @@
           field.value = Number.isFinite(n) && n !== 0 ? String(Math.round(n * 100) / 100) : '';
         }
       }
+      const k1 = ['k1Partnership', 'k1Guaranteed', 'k1SCorp'].some((k) => Number(values[k]));
+      $('hasK1').checked = k1;
+      $('k1Se').value = k1 && values.k1Se != null && values.k1Se !== '' ? String(values.k1Se) : '';
       syncQuestions();
       show(resultsStep);
     },

@@ -764,3 +764,30 @@ details.org-box[open] > summary::after { content: "\2212"; }
   .nav-logo { font-size: 0.98rem; }
   .internal-links .nav-cta { padding: 7px 9px; font-size: 0.78rem; }
 }
+
+/* ---------- S-corp calculator ---------- */
+.sc-card + .sc-card { margin-top: 20px; }
+.sc-card h2 { margin-bottom: 12px; }
+.sc-status { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 20px; }
+.sc-status .choice span { padding: 10px 14px; }
+.sc-headline { font-family: "Fraunces", Georgia, serif; font-size: clamp(1.4rem, 4.5vw, 1.9rem); font-weight: 700; line-height: 1.2; margin: 0 0 6px; }
+.sc-headline.good, .sc-table td.good { color: #2F6F62; }
+.sc-headline.bad, .sc-table td.bad { color: #A3472B; }
+.sc-table thead th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #5A6475; font-weight: 600; padding: 6px 0; text-align: right; }
+.sc-table thead th:first-child { text-align: left; }
+.sc-table td, .sc-table th { padding-right: 8px; }
+.sc-table td:last-child, .sc-table th:last-child { padding-right: 0; }
+.sc-table td { min-width: 0; }
+.sc-key { margin-top: 10px; }
+.sc-card .est-disclaimer { margin-top: 16px; }
+.sc-table tr.sum th, .sc-table tr.sum td { font-weight: 700; color: var(--evergreen); border-top: 1.5px solid rgba(29, 53, 87, 0.3); }
+#sc-salaries td { text-align: right; }
+#sc-salaries td:first-child { text-align: left; }
+.sc-h3 { margin: 22px 0 6px; font-size: 1.05rem; color: var(--evergreen); }
+.sc-notes { margin: 16px 0 0; padding-left: 18px; font-size: 0.9rem; color: #4A5568; display: grid; gap: 6px; }
+.linkish { background: none; border: 0; padding: 0; color: var(--evergreen); text-decoration: underline; font: inherit; cursor: pointer; }
+@media (max-width: 560px) { .sc-status { grid-template-columns: minmax(0, 1fr); } }
+
+.sc-promo { margin: 14px 0; padding: 12px 14px; border-radius: 10px; background: #EEF2F8; font-size: 0.92rem; }
+.sc-promo a, .truck-scorp a { color: var(--evergreen); font-weight: 600; }
+.truck-scorp { margin: 12px 0 0; font-size: 0.9rem; }

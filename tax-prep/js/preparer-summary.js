@@ -126,6 +126,8 @@
         ['Social Security benefits (SSA-1099 box 5)', num(d.socialSecurity)], ['Other income', num(d.otherIncome)],
         ['Traditional IRA contributions', num(d.iraYou) + num(d.iraSpouse)], ['HSA contributions (own)', num(d.hsaContribution)],
         ['SEP / solo 401(k) contributions', num(d.sepContribution)],
+        ['K-1 partnership / LLC box 1', finite(d.k1Partnership)], ['K-1 guaranteed payments (box 4c)', num(d.k1Guaranteed)],
+        ['K-1 S-corp box 1', finite(d.k1SCorp)], ['K-1 self-employment earnings (box 14A)', r.k1Se || 0],
         ['Federal estimated payments', num(d.estimatedPayments)], ['State estimated payments', num(d.stateEstimated)],
       ].filter(([, v]) => v),
       scheduleC: seIncome || totalExpenses ? { grossReceipts: seIncome, lines, unitemized, totalExpenses, netProfit, homeOffice: round2(homeOffice),
@@ -187,6 +189,11 @@
     if (d.childcare) q.push("Childcare: provider's name, address, tax ID and amount paid (Form 2441).");
     if (d.college) q.push('Form 1098-T for education credits.');
     if (d.mortgage || d.studentLoan) q.push('Form 1098 / 1098-E: compare itemizing with the standard deduction; student loan interest is an adjustment.');
+    if (r.k1Income || r.k1Se) {
+      q.push('K-1s: get every page, including box 20 code Z (1065) or box 17 code V (1120-S) for the QBI deduction, and any state K-1. Check basis and at-risk limits (Form 7203 for S-corp shareholders) and passive-activity rules for losses.');
+      if (finite(d.k1SCorp) > 0 && !num(d.wages)) q.push('S-corp income with no W-2 wages entered: confirm the owner took a reasonable salary. Distributions with no salary are an IRS audit flag.');
+      if (finite(d.k1Partnership) && (d.k1Se == null || d.k1Se === '')) q.push('Partnership SE earnings were assumed to be box 1 + guaranteed payments (general partner / active LLC member). Use box 14 code A; limited partners usually owe SE tax only on guaranteed payments.');
+    }
     if (d.irsLetter) q.push('Get a copy of the IRS or state letter.');
     if (num(d.socialSecurity)) q.push('SSA-1099 for each person: confirm box 5 and any withholding (box 6); Medicare premiums matter only if itemizing.');
     if (num(d.retirementIncome)) q.push('1099-R: check the distribution code (box 7). Early withdrawals before 59 1/2 may owe a 10% additional tax (Form 5329) not in this estimate; rollovers are not taxable.');

@@ -167,7 +167,7 @@ Rules:
 - Use only field names from the catalog below. Leave out any field that is blank on this page.
 - Money and counts: digits only, with a decimal point if written (no $ or commas). Example: "41,000.00" -> "41000".
 - Dates: YYYY-MM-DD. Years like "84" are 1984 for birth years and 2026 for trip dates.
-- Checkboxes: true if checked, crossed or filled in. Leave out unchecked boxes.
+- Checkboxes: true if checked, crossed or filled in. Leave out unchecked boxes. On the K-1 table, "S-corp? Yes/No": Yes means the k1N_scorp checkbox is true.
 - Some editions come pre-marked for one filing type (a coloured label such as "SINGLE" or "HEAD OF HOUSEHOLD" in the header, with that status box already crossed). Report that status checkbox as true.
 - State: the 2-letter code (Illinois -> "IL").
 - Privacy: do not copy people's names, employer or payer names, or notes. For those text fields write "yes" if something is written there.
@@ -338,6 +338,7 @@ ${catalog}`;
       r.carDeduction && [`Car (${r.carMethod === 'actual' ? 'actual costs' : 'mileage rate'}), in business income`, r.carDeduction],
       r.perDiemDeduction && ['Truck per diem (80%), in business income', r.perDiemDeduction],
       r.taxableSocialSecurity && [`Taxable Social Security (of ${money(r.socialSecurity)})`, r.taxableSocialSecurity],
+      r.k1Income && ['Schedule K-1 income (in total income)', r.k1Income],
       ['Total income', r.totalIncome], r.halfSeTax && ['Half of self-employment tax', -r.halfSeTax],
       r.sepDeduction && ['SEP / solo 401(k)', -r.sepDeduction], r.hsaDeduction && ['HSA deduction', -r.hsaDeduction],
       r.iraDeduction && ['IRA deduction', -r.iraDeduction],

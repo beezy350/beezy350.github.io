@@ -56,6 +56,10 @@ const ss = M.fromPdfFields({ status_mfj: true, birth_you: '1958', birth_spouse: 
 eq([ss.socialSecurity, ss.retirementIncome, ss.otherIncome, ss.withheld, ss.iraYou, ss.iraCoveredSpouse, ss.hsaFamily, ss.you50, ss.spouse50, ss.you55],
   [30000, 12000, 500, 1600, 8600, 1, 1, 1, 1, 1]);
 
+// K-1 rows: ticked = S-corp; partnership SE defaults to box 1 + guaranteed payments unless box 14A is filled
+const k1 = M.fromPdfFields({ k11_box1: '50,000', k11_gp: '20000', k12_box1: '30000', k12_se: '0', k13_box1: '40000', k13_scorp: true }, St.NAMES);
+eq([k1.k1Partnership, k1.k1Guaranteed, k1.k1SCorp, k1.k1Se], [80000, 20000, 40000, 70000]);
+
 eq(M.isOrganizer(['status_single', 'exp_fuel_diesel_100']), true);
 eq(M.isOrganizer(['Text1', 'Check2']), false);
 console.log(`All ${n} checks passed`);

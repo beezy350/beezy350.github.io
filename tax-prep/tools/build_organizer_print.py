@@ -375,6 +375,12 @@ def pages(s, k):
         s.text(M + 18, y + 3, lab, 9.5)
         y -= 22
     s.text(M, y - 4, "Traditional IRA only (Roth isn't deductible). Contributions made by April 15, 2027 can count for 2026.", 8, MUTED)
+    y -= 26
+    y = s.section(y, "K-1 income (partnership, LLC or S-corp owners)") - 4
+    y = s.table(y, [("Business name (optional)", 150, False), ("S-corp? Yes/No", 74, False), ("Box 1 income (loss)", 108, True),
+                    ("Box 4c guar. pmts (1065)", 106, True), ("Box 14A SE (1065)", 106, True)], 4, row_h=24)
+    s.text(M, y, "S-corp = Form 1120-S K-1 (your salary goes in the W-2 jobs table). No = partnership / LLC (Form 1065).", 8, MUTED)
+    assert y > 40, f"print page 2 continued overflow ({y})"
 
     # ---------- Page 3: expenses over two sheets ----------
     groups, current = [], None

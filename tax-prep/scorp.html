@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-Corp Savings Calculator | Falcon Tax Solutions</title>
+<meta name="description" content="Self-employed, trucking or rideshare? See whether an S-corp could lower your 2026 taxes after payroll and extra costs. Nothing you enter leaves your device.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="css/tax.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="container nav">
+    <a href="index.html" class="nav-logo">Falcon Tax Solutions</a>
+    <a href="index.html#quote" class="nav-cta">Book a Consultation</a>
+  </nav>
+</header>
+
+<main class="estimator">
+  <div class="container est-wrap">
+
+    <div class="est-intro">
+      <p class="eyebrow">2026 tax year &middot; for self-employed owners</p>
+      <h1>S-corp savings calculator</h1>
+      <p>As a sole proprietor or single-member LLC, you pay 15.3% self-employment tax on all your profit. An S-corp pays you a salary and passes the rest of the profit to you without that tax, but it adds payroll and a separate business return. See which costs less for you.</p>
+      <p class="est-private">Your numbers stay on this device. Nothing is sent or saved.</p>
+    </div>
+
+    <form id="sc-form" class="est-card sc-card" novalidate>
+      <h2>Your business and household</h2>
+      <div class="choice-grid sc-status">
+        <label class="choice"><input type="radio" name="status" value="single" checked><span><strong>Single</strong></span></label>
+        <label class="choice"><input type="radio" name="status" value="mfj"><span><strong>Married filing jointly</strong></span></label>
+        <label class="choice"><input type="radio" name="status" value="hoh"><span><strong>Head of household</strong></span></label>
+        <label class="choice"><input type="radio" name="status" value="mfs"><span><strong>Married filing separately</strong></span></label>
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="sc-profit">Yearly business profit</label>
+          <div class="money"><input type="number" id="sc-profit" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0" value="90000"></div>
+          <p class="est-help">Income minus business expenses (Schedule C line 31).</p>
+        </div>
+        <div class="field">
+          <label for="sc-salary">Salary the S-corp would pay you</label>
+          <div class="money"><input type="number" id="sc-salary" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+          <p class="est-help">Must be reasonable for your work. We start at half the profit. <button type="button" class="linkish" id="sc-reset-salary">Reset</button></p>
+        </div>
+        <div class="field">
+          <label for="sc-costs">Extra yearly S-corp costs</label>
+          <div class="money"><input type="number" id="sc-costs" min="0" max="999999999" step="any" inputmode="decimal" value="2000"></div>
+          <p class="est-help">Payroll service, business tax return, state fees and unemployment tax.</p>
+        </div>
+        <div class="field">
+          <label for="sc-wages">Other W-2 wages in the household</label>
+          <div class="money"><input type="number" id="sc-wages" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+          <p class="est-help">For example, a spouse's job.</p>
+        </div>
+        <div class="field">
+          <label for="sc-kids">Children under 17</label>
+          <input type="number" id="sc-kids" min="0" max="15" step="1" value="0" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="sc-state">State</label>
+          <select id="sc-state"><option value="">Choose a state</option></select>
+        </div>
+      </div>
+    </form>
+
+    <section class="est-card sc-card" id="sc-result" aria-live="polite" hidden>
+      <p class="sc-headline" id="sc-headline"></p>
+      <p class="est-help" id="sc-sub"></p>
+      <div class="table-wrap"><table class="breakdown sc-table" id="sc-table"></table></div>
+      <p class="est-help sc-key">Self-employment tax is 15.3% of your profit. Payroll taxes are the same 15.3% on your salary only (you and the S-corp each pay half), plus federal unemployment tax. In Illinois the S-corp's state tax includes the 1.5% replacement tax.</p>
+      <h3 class="sc-h3">What salary works best?</h3>
+      <p class="est-help">A lower salary saves more but is harder to defend if the IRS asks. Most owners land between 40% and 60% of profit.</p>
+      <div class="table-wrap"><table class="breakdown sc-table" id="sc-salaries"></table></div>
+      <ul class="sc-notes" id="sc-notes"></ul>
+      <p class="est-disclaimer">A planning estimate using 2026 IRS figures and your state's rules, not tax advice. It leaves out retirement-plan and health-insurance differences, and the time and record-keeping an S-corp needs. Talk with us before you change your business set-up.</p>
+      <div class="result-actions">
+        <a href="index.html#quote" class="btn btn-primary">Talk to us about an S-corp</a>
+        <a href="estimator.html" class="btn btn-outline">Estimate my refund</a>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="disclaimer">
+      Falcon Tax Solutions is an independent tax preparation business and is not affiliated with or endorsed by the IRS.
+      Estimates are for planning only.
+    </p>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Falcon Tax Solutions. All rights reserved.</span>
+      <a href="privacy.html">Privacy Policy</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/tax2026.js"></script>
+<script src="js/states.js"></script>
+<script src="js/scorp.js"></script>
+</body>
+</html>

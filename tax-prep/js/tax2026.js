@@ -169,6 +169,21 @@
       notes.push('Car costs were left out: they count only against self-employment income.');
     }
     const seNet = seIncome - num(input.seExpenses) - perDiemDeduction - carDeduction; // can be a loss
+
+    // Schedule K-1 income. Partnership (1065) box 1 and guaranteed payments
+    // (box 4c) carry self-employment tax via box 14A, which defaults to box 1 +
+    // guaranteed payments (general partner / active LLC member). S-corp
+    // (1120-S) box 1 has no self-employment tax; the owner's salary is on a W-2.
+    const k1Partnership = finite(input.k1Partnership);
+    const k1Guaranteed = num(input.k1Guaranteed);
+    const k1SCorp = finite(input.k1SCorp);
+    const k1SeGiven = input.k1Se != null && input.k1Se !== '';
+    const k1Se = k1SeGiven ? finite(input.k1Se) : k1Partnership + k1Guaranteed;
+    const k1Income = k1Partnership + k1Guaranteed + k1SCorp;
+    if (k1Income || k1Se) {
+      notes.push('K-1 income is included. Losses can be limited by your basis, at-risk amount and passive-activity rules, and the 20% business income deduction may depend on the business\'s W-2 wages (K-1 box 20 code Z or box 17 code V); a preparer will check.');
+    }
+    const seTotal = seNet + k1Se; // Schedule SE combines all self-employment earnings
     const interest = num(input.interest);
     const unemployment = num(input.unemployment);
     const otherIncome = num(input.otherIncome);
@@ -179,15 +194,15 @@
 
     // Self-employment tax (Schedule SE)
     let seTax = 0;
-    if (seNet * 0.9235 >= 400) {
-      const base = seNet * 0.9235;
+    if (seTotal * 0.9235 >= 400) {
+      const base = seTotal * 0.9235;
       const ssRoom = Math.max(0, SS_WAGE_BASE - wages);
       seTax = Math.min(base, ssRoom) * 0.124 + base * 0.029;
     }
     const halfSeTax = seTax / 2;
 
     // Retirement and health savings (Schedule 1 adjustments)
-    const seComp = Math.max(0, seNet - halfSeTax);
+    const seComp = Math.max(0, seTotal - halfSeTax);
     const sepWanted = num(input.sepContribution);
     const sepDeduction = Math.min(sepWanted, seComp * 0.2, SEP_MAX);
     if (sepWanted > sepDeduction + 0.5) notes.push(`SEP / solo 401(k): only $${Math.round(sepDeduction).toLocaleString('en-US')} counts here (20% of self-employment earnings after half the SE tax, up to $72,000). A solo 401(k) can allow more; a preparer will check.`);
@@ -198,7 +213,7 @@
 
     const socialSecurity = num(input.socialSecurity);
     const retirementIncome = num(input.retirementIncome);
-    const incomeNoSs = wages + seNet + interest + unemployment + otherIncome + retirementIncome;
+    const incomeNoSs = wages + seNet + k1Income + interest + unemployment + otherIncome + retirementIncome;
     const adjBeforeIra = halfSeTax + sepDeduction + hsaDeduction;
 
     // Traditional IRA: per-person limit, capped by pay, phased out with a workplace plan.
@@ -242,7 +257,8 @@
 
     // Qualified business income deduction, simple case only
     let qbi = 0;
-    const qbiBase = seNet - halfSeTax - sepDeduction;
+    // guaranteed payments are not qualified business income
+    const qbiBase = seNet + k1Partnership + k1SCorp - halfSeTax - sepDeduction;
     if (qbiBase > 0) {
       // Above the threshold the deduction phases down to zero over the
       // phase-in range (sole proprietor with no W-2 payroll or property).
@@ -268,7 +284,7 @@
 
     // Refundable additional child tax credit
     // a self-employment loss reduces earned income (IRS Pub. 596)
-    const earned = Math.max(0, wages + seNet - halfSeTax);
+    const earned = Math.max(0, wages + seTotal - halfSeTax);
     const kidsShare = Math.min(ctcAllowed, kids * CTC_PER_CHILD);
     const actc = Math.min(
       unused,
@@ -326,6 +342,8 @@
       hsaDeduction: round(hsaDeduction),
       sepDeduction: round(sepDeduction),
       halfSeTax: round(halfSeTax),
+      k1Income: round(k1Income),
+      k1Se: round(k1Se),
       carDeduction: round(carDeduction),
       carMethod,
       carStandard: round(carStandard),

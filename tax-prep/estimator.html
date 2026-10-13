@@ -250,6 +250,29 @@
           </div>
         </div>
 
+        <label class="check"><input type="checkbox" id="hasK1" name="hasK1"> I own part of a partnership, LLC or S-corp (I got a Schedule K-1)</label>
+        <div class="perdiem-box" id="k1-box" hidden>
+          <p class="est-help">Copy the totals from your K-1s. S-corp owners: your salary is a W-2, so it goes in the Jobs step.</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="k1Partnership">Partnership / LLC K-1, box 1</label>
+              <div class="money"><input type="number" id="k1Partnership" name="k1Partnership" min="-999999999" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+              <p class="est-help">Ordinary business income. Use a minus sign for a loss.</p>
+            </div>
+            <div class="field">
+              <label for="k1Guaranteed">Partnership / LLC K-1, box 4c</label>
+              <div class="money"><input type="number" id="k1Guaranteed" name="k1Guaranteed" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+              <p class="est-help">Guaranteed payments to you.</p>
+            </div>
+            <div class="field">
+              <label for="k1SCorp">S-corp K-1 (1120-S), box 1</label>
+              <div class="money"><input type="number" id="k1SCorp" name="k1SCorp" min="-999999999" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+              <p class="est-help">No self-employment tax on this part.</p>
+            </div>
+          </div>
+          <input type="hidden" id="k1Se" name="k1Se">
+        </div>
+
         <label class="check"><input type="checkbox" id="usesCar" name="usesCar"> I drive a car for rideshare, delivery or other business</label>
         <div class="perdiem-box" id="car-box" hidden>
           <p class="est-help">We compare the IRS mileage rate (72.5&cent; a mile through June, 76&cent; from July 1, 2026) with your actual car costs times your business share of miles, and use the larger. Rideshare apps show your "online miles" in the yearly tax summary.</p>
@@ -402,6 +425,7 @@
           It is not tax advice or a promise of any refund. Your actual result depends on your full tax documents.
         </p>
 
+        <p class="sc-promo" id="res-scorp" hidden><a href="scorp.html">Your business profit is high enough that an S-corp might lower your taxes. Run the S-corp savings calculator &rarr;</a></p>
         <div class="result-actions">
           <a href="index.html#quote" class="btn btn-primary" id="res-book">Book a free consultation</a>
           <button type="button" class="btn btn-outline" id="res-edit">Edit my answers</button>
