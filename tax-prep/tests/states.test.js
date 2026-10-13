@@ -24,7 +24,7 @@ const in4 = { status: 'single', wages: 260000 };
 eq(St.estimateState('IL', in4, estimate(in4)).exemptions, 0);
 
 // Self-employed: Illinois starts from AGI after half of SE tax
-const in5 = { status: 'single', seIncome: 90000, seExpenses: 43517.5 };
+const in5 = { status: 'single', seIncome: 88000, seExpenses: 42000 };
 const f5 = estimate(in5);
 eq(St.estimateState('IL', in5, f5).base, f5.agi);
 
@@ -39,7 +39,7 @@ const rf = estimate(ret);
 const ri = St.estimateState('IL', ret, rf);
 eq([ri.retireSubtraction, ri.base], [rf.taxableSocialSecurity + 20000, 1000]);
 // Illinois earned income credit: 20% of the federal credit, refundable
-const ek = { status: 'mfj', childrenUnder17: 2, seIncome: 90000, seExpenses: 43517.5 };
+const ek = { status: 'mfj', childrenUnder17: 2, seIncome: 88000, seExpenses: 42000 };
 const ef = estimate(ek);
 eq(St.estimateState('IL', ek, ef).eic, Math.round(ef.eitc * 0.2));
 

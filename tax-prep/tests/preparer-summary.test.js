@@ -10,7 +10,7 @@ const eq = (a, b, m) => { assert.deepStrictEqual(a, b, m); n++; };
 const field = (label) => Object.keys(C.expenses).find((k) => C.expenses[k].label === label);
 
 // Married rideshare driver: itemized lines land on the right Schedule C lines
-const f = { status_mfj: true, state: 'IL', dep1_name: 'yes', dep1_year: '2016', se1_amount: '90000', job1_fed: '6454.12',
+const f = { status_mfj: true, state: 'IL', dep1_name: 'yes', dep1_year: '2016', se1_amount: '88000', job1_fed: '6000',
   car_miles_h1: '20000', car_miles_h2: '20000', car_miles_total: '45000', car_gas: '17000', car_rent: '14400' };
 f[field('Legal & professional fees')] = '450';
 f[field('Business meals (enter full amount)')] = '3000';
@@ -26,7 +26,7 @@ eq(line('10').amount, 2000, 'app fees on line 10');
 eq(line('9').amount, 100 + r.carDeduction, 'tolls plus the car deduction on line 9');
 eq(m.scheduleC.netProfit, r.totalIncome, 'Schedule C net profit ties to the estimate');
 eq(m.scheduleC.itemized, true);
-assert.ok(m.questions.some((q) => /withholding of \$6,454\.12 with no W-2 wages/.test(q)), 'asks where withholding came from'); n++;
+assert.ok(m.questions.some((q) => /withholding of \$6,000 with no W-2 wages/.test(q)), 'asks where withholding came from'); n++;
 assert.ok(m.questions.some((q) => /Meals entered for a rideshare/.test(q)), 'flags rideshare meals'); n++;
 assert.ok(m.questions.some((q) => /Form 8867/.test(q)), 'due diligence for EITC/CTC'); n++;
 assert.ok(/Line 31 Net profit/.test(P.toText(m)), 'text version'); n++;

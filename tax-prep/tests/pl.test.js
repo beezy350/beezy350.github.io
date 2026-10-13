@@ -5,35 +5,35 @@ const { estimate } = require('../js/tax2026.js');
 let n = 0;
 const eq = (a, b, m) => { assert.deepStrictEqual(a, b, m); n++; };
 
-// 1. Simple two-column sheet (the shape of the user's sample PDF)
+// 1. Simple two-column sheet (an illustrative hand-made summary, made-up numbers)
 const simple = PL.parseCSV(`Item,Value
-Gross income,90000
-Gas,17000
-Vehicle rent,14400
-Phone & data,1800
-Supplies & cleaning,3300
-Meals (50%),1500
-Driver tools & apps,2500
-Car wash & fluids,1267.5
-Tolls & permits,100
-Office expense,1200
-Legal fees,450
-Total expenses,43517.5
-Net business income,46482.5
-Federal tax owed,2300
-Federal tax withheld,6454.12
-Federal refund,4154.12
-Illinois tax owed,2154.12
-Illinois tax withheld,5000
-Illinois refund,2845.88
-Estimated total tax refund,7000`);
+Gross income,85000
+Gas,15000
+Vehicle rent,12000
+Phone & data,1500
+Supplies & cleaning,2800
+Meals (50%),1200
+Driver tools & apps,2000
+Car wash & fluids,1100
+Tolls & permits,150
+Office expense,900
+Legal fees,400
+Total expenses,37050
+Net business income,47950
+Federal tax owed,2100
+Federal tax withheld,5800
+Federal refund,3700
+Illinois tax owed,2000
+Illinois tax withheld,4000
+Illinois refund,2000
+Estimated total tax refund,5700`);
 const a = PL.analyze(simple);
-eq(a.income, 90000);
-eq(a.expenses, 43517.5);
-eq(a.net, 46482.5);
-eq(a.withheld, 6454.12, 'federal withheld captured, Illinois ignored');
-eq(a.statedFederalTax, 2300);
-eq(a.statedNet, 46482.5);
+eq(a.income, 85000);
+eq(a.expenses, 37050);
+eq(a.net, 47950);
+eq(a.withheld, 5800, 'federal withheld captured, Illinois ignored');
+eq(a.statedFederalTax, 2100);
+eq(a.statedNet, 47950);
 eq(a.lines.length, 11, 'tax summary and total rows excluded');
 eq(a.flags.some((f) => f.startsWith('"Meals (50%)"')), true);
 eq(a.flags.some((f) => f.includes('Vehicle costs (Gas, Vehicle rent, Car wash & fluids)')), true);

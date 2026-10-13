@@ -94,3 +94,12 @@ Form 8867 due diligence, meals, depreciation, home office). Print / Save as
 PDF or copy it as text. `js/expense-catalog.js` maps organizer fields to
 Schedule C lines; regenerate it after editing EXPENSES or CAR_* lists.
 
+## Pre-return audit-proofing plan (internal)
+
+`internal/falcon-pre-return-audit-plan.pdf` is the 6-page workflow for
+self-employed and rideshare returns: 10-step flow chart, vehicle decision tree,
+checklist and red flags, a worked example (made-up numbers), what to do when an
+IRS letter arrives, and the client document request list. Rebuild with:
+
+    python3 tax-prep/tools/build_audit_plan.py tax-prep/internal/falcon-pre-return-audit-plan.pdf
+
