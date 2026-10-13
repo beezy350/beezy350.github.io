@@ -742,7 +742,7 @@ body:not(.is-trucking) .trucking-only { display: none !important; }
 /* ---------- Estimator: Tax Organizer box ---------- */
 .org-box { margin-top: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; background: var(--white); border: 1.5px solid var(--clay-light); border-radius: 12px; padding: 16px 20px; }
 .org-text { flex: 1 1 320px; min-width: 0; }
-.org-links { margin-top: 6px; font-size: 0.9rem; display: flex; gap: 8px; flex-wrap: wrap; }
+.org-links { margin: 6px 0 10px; font-size: 0.9rem; display: flex; gap: 8px; flex-wrap: wrap; }
 .org-links a { color: var(--evergreen); font-weight: 600; text-decoration: underline; }
 .org-status { flex-basis: 100%; }
 .org-status:empty { display: none; }

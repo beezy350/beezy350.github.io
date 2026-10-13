@@ -5,7 +5,12 @@ taller rows and a filing-type guide. Same questions and labels as the
 fillable PDF, and every data page keeps the "PAGE n OF 4" header so the
 Scan Reader can read a photo of it.
 
+One combined edition covers every filing type; --all-types also builds a
+separate, colour-coded edition per filing type (status pre-marked, only the
+lines that type needs).
+
 Run:  python3 tax-prep/tools/build_organizer_print.py [output.pdf]
+      python3 tax-prep/tools/build_organizer_print.py --all-types tax-prep/downloads
 """
 import sys
 from reportlab.lib.colors import HexColor, white
@@ -20,11 +25,25 @@ NAVY, GOLD, INK, MUTED, BOX = (HexColor(c) for c in ["#1D3557", "#C8963E", "#1B2
 SOFT = HexColor("#F4F5F7")
 M = 34
 
+# Filing-type editions: key -> (file name, short label, full name, colour, who qualifies)
+TYPES = {
+    "single": ("falcon-2026-single.pdf", "SINGLE", "Single", "#2F6F62",
+               "Not married on Dec 31, 2026, and no qualifying child or relative living with you."),
+    "mfj": ("falcon-2026-married-joint.pdf", "MARRIED JOINT", "Married filing jointly", "#1D5FA8",
+            "Married on Dec 31, 2026, and filing one return together. Usually the lowest tax for couples."),
+    "mfs": ("falcon-2026-married-separate.pdf", "MARRIED SEPARATE", "Married filing separately", "#7A4FA0",
+            "Married, but you file your own return. Your spouse fills in their own organizer."),
+    "hoh": ("falcon-2026-head-of-household.pdf", "HEAD OF HOUSEHOLD", "Head of household", "#B5582A",
+            "Not married, paid over half the cost of your home, and a qualifying child or relative lived with you."),
+}
+
 
 class Sheet:
-    def __init__(self, path):
+    def __init__(self, path, kind=None):
+        self.kind_key, self.kind = kind, TYPES.get(kind)
         self.c = canvas.Canvas(path, pagesize=letter)
-        self.c.setTitle("Falcon Tax Solutions - 2026 Tax Organizer (print edition)")
+        edition = self.kind[2] if self.kind else "print edition"
+        self.c.setTitle(f"Falcon Tax Solutions - 2026 Tax Organizer ({edition})")
         self.c.setAuthor("Falcon Tax Solutions")
         self.started = False
 
@@ -46,6 +65,15 @@ class Sheet:
         c.setFont("Helvetica", 8.5)
         c.setFillColor(HexColor("#C9D3E3"))
         c.drawString(M, H - 56, sub)
+        if self.kind:  # colour-coded filing-type label on every page
+            _, short, _, colour, _ = self.kind
+            c.setFillColor(HexColor(colour))
+            c.rect(0, H - 66, W, 4, fill=1, stroke=0)
+            c.setFont("Helvetica-Bold", 11)
+            bw = c.stringWidth(short, "Helvetica-Bold", 11) + 22
+            c.roundRect(W - M - bw, H - 50, bw, 24, 5, fill=1, stroke=0)
+            c.setFillColor(white)
+            c.drawCentredString(W - M - bw / 2, H - 42, short)
         return H - 80
 
     def footer(self):
@@ -106,8 +134,8 @@ class Sheet:
         return y - 14
 
 
-def build(path):
-    s = Sheet(path)
+def build(path, kind=None):
+    s = Sheet(path, kind)
 
     # ---------- Guide ----------
     y = s.page(0, "Your 2026 Tax Organizer", "Print it, fill it in by hand, then send us photos or a scan of pages 1 to 4.")
@@ -122,6 +150,48 @@ def build(path):
         s.text(M, y, line, 9.5)
         y -= 15
     y -= 8
+    if kind:
+        guide_for_type(s, y)
+    else:
+        guide_all_types(s, y)
+    contact(s)
+    pages(s, kind)
+    s.footer()
+    s.c.save()
+
+
+def guide_for_type(s, y):
+    _, short, name, colour, who = s.kind
+    c = s.c
+    y = s.section(y, "This organizer is for: " + name)
+    c.setFillColor(HexColor(colour))
+    c.rect(M, y - 26, 4, 36, fill=1, stroke=0)
+    s.text(M + 14, y - 2, who, 9.5)
+    s.text(M + 14, y - 18, "Not sure this is your filing type? Ask us before you fill it in and we'll send the right one.", 8.6, MUTED)
+    y -= 46
+    y = s.section(y, "What to fill in")
+    todo = {
+        "single": ["Page 1 · State, your birth year, dependents (if any)*, checklist",
+                   "Page 2 · Your W-2 jobs, self-employment, cash and other income"],
+        "mfj": ["Page 1 · State, your AND your spouse's birth year, dependents, checklist",
+                "Page 2 · W-2 jobs, self-employment, cash and other income for BOTH spouses"],
+        "mfs": ["Page 1 · State, your birth year, dependents you claim, checklist",
+                "Page 2 · Only YOUR OWN jobs and income (not your spouse's)"],
+        "hoh": ["Page 1 · State, birth year, checklist, and Dependents (REQUIRED: your qualifying person)",
+                "Page 2 · Your W-2 jobs, self-employment, cash and other income"],
+    }[s.kind_key]
+    todo += ["Page 3 · Business expenses, only if you are self-employed (3 sheets)",
+             "Page 4 · Truck-driver trips (self-employed drivers) and estimated tax payments you made"]
+    for line in todo:
+        s.check(M, y - 3)
+        s.text(M + 18, y, line, 9.4)
+        y -= 21
+    if s.kind_key == "single":
+        s.text(M, y - 2, "* A qualifying child or relative living with you? You likely qualify for Head of household, which lowers tax. Ask us.", 8, MUTED)
+    s.y = y
+
+
+def guide_all_types(s, y):
     y = s.section(y, "Which filing type are you?")
     types = [
         ("Single", "Not married on Dec 31, 2026, and no qualifying person living with you."),
@@ -168,7 +238,12 @@ def build(path):
             x += w
     y -= 14
     s.text(M, y, "* A single filer with a qualifying child or relative usually qualifies for Head of household, which lowers tax. Ask us.", 8, MUTED)
-    y -= 22
+    s.y = y
+
+
+def contact(s):
+    c = s.c
+    y = s.y - 22
     y = s.section(y, "Your contact information (so we can send your estimate)")
     s.text(M, y, "Name", 8, MUTED)
     s.text(M + 240, y, "Phone", 8, MUTED)
@@ -187,27 +262,44 @@ def build(path):
         t.textLine(line)
     c.drawText(t)
 
+
+def pages(s, k):
     # ---------- Page 1 ----------
-    y = s.page(1, "Household & dependents", "Check one filing status. Married filing jointly: include your spouse.")
-    y = s.section(y, "Filing status (check one)")
+    sub1 = {None: "Check one filing status. Married filing jointly: include your spouse.",
+            "single": "Filing status is already marked. Fill in the rest of this page.",
+            "mfj": "Filing status is already marked. Include your spouse.",
+            "mfs": "Filing status is already marked. Only you, not your spouse.",
+            "hoh": "Filing status is already marked. List your qualifying person under Dependents."}[k]
+    y = s.page(1, "Household & dependents", sub1)
+    y = s.section(y, "Filing status" + ("" if k else " (check one)"))
     x = M
-    for lab in ["Single", "Married filing jointly", "Married filing separately", "Head of household"]:
+    for key, lab in [("single", "Single"), ("mfj", "Married filing jointly"), ("mfs", "Married filing separately"), ("hoh", "Head of household")]:
         s.check(x, y - 4)
-        s.text(x + 17, y - 1, lab, 9.5)
+        if k == key:  # pre-marked, so the Scan Reader reads this status
+            c = s.c
+            c.setStrokeColor(INK)
+            c.setLineWidth(2)
+            c.line(x + 2, y - 2, x + 10, y + 6)
+            c.line(x + 2, y + 6, x + 10, y - 2)
+        s.text(x + 17, y - 1, lab, 9.5, INK if not k or k == key else BOX, k == key)
         x += 136
     y -= 30
     s.text(M, y, "State you lived in during 2026", 8.5, MUTED)
     s.text(M + 220, y, "Your birth year", 8.5, MUTED)
-    s.text(M + 340, y, "Spouse's birth year (joint returns)", 8.5, MUTED)
     s.box(M, y - 28, 200, 24)
     s.box(M + 220, y - 28, 100, 24)
-    s.box(M + 340, y - 28, 100, 24)
+    if k in (None, "mfj"):
+        s.text(M + 340, y, "Spouse's birth year" + ("" if k else " (joint returns)"), 8.5, MUTED)
+        s.box(M + 340, y - 28, 100, 24)
     y -= 48
     s.check(M, y - 3)
     s.text(M + 18, y, "I paid for childcare or daycare so I could work", 9.5)
     y -= 28
-    y = s.section(y, "Dependents (children and relatives you support)")
-    s.text(M, y + 2, "Children under 17 at the end of 2026 were born in 2010 or later. Leave empty if you have no dependents.", 8, MUTED)
+    y = s.section(y, "Dependents (children and relatives you support)" + ("  ·  REQUIRED" if k == "hoh" else ""))
+    dep_note = {"hoh": "List your qualifying child or relative (lived with you over half the year).",
+                "mfs": "Only dependents YOU claim; you and your spouse can't both claim the same child."}.get(
+        k, "Leave empty if you have no dependents.")
+    s.text(M, y + 2, "Under 17 at the end of 2026 = born in 2010 or later. " + dep_note, 8, MUTED)
     y -= 12
     y = s.table(y, [("First name", 150, False), ("Relationship", 110, False), ("Birth year", 80, False),
                     ("Months lived with you", 110, False), ("Has an SSN? (Yes/No)", 94, False)], 8, row_h=24)
@@ -219,17 +311,21 @@ def build(path):
         y -= 19
 
     # ---------- Page 2 ----------
-    y = s.page(2, "Paychecks, cash, tips & other income", "Married filing jointly: both spouses. Married filing separately: only your own.")
+    sub2 = {None: "Married filing jointly: both spouses. Married filing separately: only your own.",
+            "mfj": "Include BOTH spouses' jobs and income.", "mfs": "Only YOUR OWN jobs and income, not your spouse's."}.get(
+        k, "All your jobs and income for 2026.")
+    y = s.page(2, "Paychecks, cash, tips & other income", sub2)
     y = s.section(y, "Jobs (W-2 paychecks), one row per W-2")
-    y = s.table(y, [("Employer", 108, False), ("Whose", 64, False), ("Wages (box 1)", 76, True),
-                    ("Fed. tax (box 2)", 74, True), ("State tax (box 17)", 78, True), ("Tips (box 7)", 68, True),
-                    ("OT premium", 76, True)], 6, row_h=26)
-    s.text(M, y, "Whose = You or Spouse.   OT premium = only the extra 'half' of time-and-a-half.", 8, MUTED)
+    whose = k in (None, "mfj")
+    y = s.table(y, [("Employer", 108 if whose else 172, False)] + ([("Whose", 64, False)] if whose else []) +
+                [("Wages (box 1)", 76, True), ("Fed. tax (box 2)", 74, True), ("State tax (box 17)", 78, True),
+                 ("Tips (box 7)", 68, True), ("OT premium", 76, True)], 6, row_h=26)
+    s.text(M, y, ("Whose = You or Spouse.   " if whose else "") + "OT premium = only the extra 'half' of time-and-a-half.", 8, MUTED)
     y -= 22
     y = s.section(y, "Self-employment & cash income (1099-NEC, 1099-K, cash, Zelle, checks)")
     y = s.table(y, [("Payer or description", 260, False), ("Type (1099-NEC / 1099-K / Cash / App)", 160, False), ("Amount received", 124, True)], 8, row_h=25)
     y -= 6
-    y = s.section(y, "Other income")
+    y = s.section(y, "Other income") - 10
     for lab in ["Cash tips NOT reported to your employer", "Bank interest (1099-INT)", "Unemployment benefits (1099-G)",
                 "Retirement withdrawals, taxable amount (1099-R)", "Other taxable income (prizes, rental profit, etc.)"]:
         s.text(M, y + 5, lab, 9.5)
@@ -278,11 +374,15 @@ def build(path):
     for label in reversed([x[0] for x in q]):
         s.text(M + 6, yy + 7, label, 8.6)
         yy += 22
-    s.footer()
-    s.c.save()
 
 
 if __name__ == "__main__":
-    out = sys.argv[1] if len(sys.argv) > 1 else "falcon-tax-organizer-2026-print.pdf"
-    build(out)
-    print("wrote", out)
+    if len(sys.argv) > 2 and sys.argv[1] == "--all-types":
+        for key, (fname, *_rest) in TYPES.items():
+            out = f"{sys.argv[2].rstrip('/')}/{fname}"
+            build(out, key)
+            print("wrote", out)
+    else:
+        out = sys.argv[1] if len(sys.argv) > 1 else "falcon-tax-organizer-2026-print.pdf"
+        build(out)
+        print("wrote", out)

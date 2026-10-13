@@ -55,10 +55,14 @@ domain.
     python3 tax-prep/tools/build_organizer.py tax-prep/downloads/falcon-tax-organizer-2026.xlsx
     python3 tax-prep/tools/build_organizer_pdf.py tax-prep/downloads/falcon-tax-organizer-2026.pdf
     python3 tax-prep/tools/build_organizer_print.py tax-prep/downloads/falcon-tax-organizer-2026-print.pdf
+    python3 tax-prep/tools/build_organizer_print.py --all-types tax-prep/downloads
     python3 tax-prep/tools/build_scan_fields.py
 
 All three share the EXPENSES and CHECKLIST lists in build_organizer.py; edit
 them there. The print edition is for handwriting (read with the Scan Reader).
+`--all-types` writes one colour-coded print form per filing type, status
+pre-marked: falcon-2026-single.pdf, -married-joint, -married-separate and
+-head-of-household.
 
 After building the .xlsx, open and save it once in LibreOffice/Excel (or run a
 recalculation) so formula results are stored; the website reads the "Data" tab.

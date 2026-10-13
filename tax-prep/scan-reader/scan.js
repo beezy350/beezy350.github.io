@@ -167,6 +167,7 @@ Rules:
 - Money and counts: digits only, with a decimal point if written (no $ or commas). Example: "41,000.00" -> "41000".
 - Dates: YYYY-MM-DD. Years like "84" are 1984 for birth years and 2026 for trip dates.
 - Checkboxes: true if checked, crossed or filled in. Leave out unchecked boxes.
+- Some editions come pre-marked for one filing type (a coloured label such as "SINGLE" or "HEAD OF HOUSEHOLD" in the header, with that status box already crossed). Report that status checkbox as true.
 - State: the 2-letter code (Illinois -> "IL").
 - Privacy: do not copy people's names, employer or payer names, or notes. For those text fields write "yes" if something is written there.
 - If you cannot read a value with confidence, give your best reading AND list the field name in "unclear". Never guess silently.
