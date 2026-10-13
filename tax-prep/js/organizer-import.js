@@ -15,7 +15,8 @@
     'wages', 'withheld', 'stateWithheld', 'tips', 'overtimePremium', 'seIncome', 'seExpenses', 'estimatedPayments',
     'stateEstimated', 'isTrucker', 'perDiemFull', 'perDiemCanada', 'perDiemPartial',
     'usesCar', 'carMilesH1', 'carMilesH2', 'carMilesTotal', 'carCosts', 'interest', 'unemployment', 'otherIncome',
-    'retirement', 'hasInvestments', 'mortgage', 'studentLoan', 'college', 'marketplace', 'noSsn', 'irsLetter'];
+    'retirement', 'retirementIncome', 'socialSecurity', 'iraYou', 'iraSpouse', 'iraCoveredYou', 'iraCoveredSpouse',
+    'hsaContribution', 'hsaFamily', 'sepContribution', 'you50', 'spouse50', 'you55', 'hasInvestments', 'mortgage', 'studentLoan', 'college', 'marketplace', 'noSsn', 'irsLetter'];
 
   function say(msg, isError) {
     status.textContent = msg;

@@ -27,6 +27,7 @@
     exemption: 2850,
     seniorExtra: 1000,
     exemptionIncomeLimit: { single: 250000, hoh: 250000, mfs: 250000, mfj: 500000 },
+    eicRate: 0.20, // Illinois earned income credit: 20% of the federal credit, refundable
   };
 
   const num = (v) => Math.max(0, Number(v) || 0);
@@ -53,19 +54,22 @@
       count = 0;
       notes.push('Illinois exemptions are not allowed at this income level.');
     }
-    const base = fed.agi;
+    // Illinois does not tax Social Security or qualified retirement income
+    const retireSubtraction = Math.min(fed.agi, (fed.taxableSocialSecurity || 0) + (fed.retirementIncome || 0));
+    const base = fed.agi - retireSubtraction;
     const taxable = Math.max(0, base - exemptions);
     const tax = taxable * IL.rate;
+    const eic = (fed.eitc || 0) * IL.eicRate;
     const paid = num(input.stateWithheld) + num(input.stateEstimated);
-    if (input.retirement) notes.push('Illinois does not tax most retirement income or Social Security. Subtracting it could lower your Illinois tax.');
+    if (retireSubtraction) notes.push('Social Security and retirement income were subtracted: Illinois does not tax them.');
     if (input.mortgage) notes.push('Illinois gives a credit of 5% of property tax paid on your main home, not included here.');
-    if (num(input.childrenUnder17) || fed.notes.some((n) => /Earned Income/.test(n))) {
-      notes.push('Illinois has its own Earned Income Credit (20% of the federal credit) and a child tax credit, not included here.');
-    }
+    if (eic) notes.push('Includes the Illinois Earned Income Credit (20% of the federal credit).');
+    if (num(input.childrenUnder17) && eic) notes.push('Illinois also has a child tax credit for children under 12, not included here.');
     return {
       code: 'IL', name: NAMES.IL, kind: 'supported',
-      base: round(base), exemptions: round(exemptions), exemptionCount: count,
-      taxable: round(taxable), tax: round(tax), paid: round(paid), result: round(paid - tax),
+      agi: round(fed.agi), retireSubtraction: round(retireSubtraction), base: round(base), exemptions: round(exemptions),
+      exemptionCount: count, taxable: round(taxable), tax: round(tax), eic: round(eic), paid: round(paid),
+      result: round(paid + eic - tax),
       rateLabel: '4.95% flat rate', notes,
     };
   }

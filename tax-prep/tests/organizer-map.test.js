@@ -50,6 +50,12 @@ const car = M.fromPdfFields({ car_miles_h1: '12,000', car_miles_h2: '8000', car_
 eq([car.usesCar, car.carMilesH1, car.carMilesH2, car.carMilesTotal, car.carCosts], [1, 12000, 8000, 30000, 11500]);
 eq(M.fromPdfFields({}, St.NAMES).usesCar, 0);
 
+// Social Security, retirement and savings fields; ages from birth years
+const ss = M.fromPdfFields({ status_mfj: true, birth_you: '1958', birth_spouse: '1974', income_socialsecurity: '30,000', income_retirement: '12000',
+  income_other: '500', income_withheld: '1500', job1_fed: '100', ira_you: '8600', ira_covered_spouse: true, hsa_amount: '5000', hsa_family: true }, St.NAMES);
+eq([ss.socialSecurity, ss.retirementIncome, ss.otherIncome, ss.withheld, ss.iraYou, ss.iraCoveredSpouse, ss.hsaFamily, ss.you50, ss.spouse50, ss.you55],
+  [30000, 12000, 500, 1600, 8600, 1, 1, 1, 1, 1]);
+
 eq(M.isOrganizer(['status_single', 'exp_fuel_diesel_100']), true);
 eq(M.isOrganizer(['Text1', 'Check2']), false);
 console.log(`All ${n} checks passed`);

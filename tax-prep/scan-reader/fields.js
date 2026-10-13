@@ -758,6 +758,60 @@ window.ORGANIZER_FIELDS = [
 "kind": "text"
 },
 {
+"name": "income_socialsecurity",
+"label": "Social Security benefits (SSA-1099 box 5, both spouses)",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "income_withheld",
+"label": "Federal tax withheld on SSA-1099, 1099-R or 1099-G",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "ira_you",
+"label": "Traditional IRA contribution: you",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "ira_spouse",
+"label": "Traditional IRA contribution: spouse",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "hsa_amount",
+"label": "HSA contributions you made yourself (not through payroll)",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "sep_amount",
+"label": "SEP-IRA or solo 401(k) contributions (self-employed)",
+"page": 2,
+"kind": "text"
+},
+{
+"name": "ira_covered_you",
+"label": "You are covered by a retirement plan at work (W-2 box 13)",
+"page": 2,
+"kind": "check"
+},
+{
+"name": "ira_covered_spouse",
+"label": "Spouse is covered by a retirement plan at work",
+"page": 2,
+"kind": "check"
+},
+{
+"name": "hsa_family",
+"label": "HSA is family coverage (not self-only)",
+"page": 2,
+"kind": "check"
+},
+{
 "name": "exp_advertising_marketing_100",
 "label": "Expense: Advertising & marketing",
 "page": 3,

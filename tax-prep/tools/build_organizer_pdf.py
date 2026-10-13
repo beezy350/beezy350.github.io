@@ -179,10 +179,27 @@ def build(path):
     y = f.section(y, "Other income")
     for key, lab in [("cashtips", "Cash tips NOT reported to your employer"), ("interest", "Bank interest (1099-INT)"),
                      ("unemployment", "Unemployment benefits (1099-G)"), ("retirement", "Retirement withdrawals, taxable amount (1099-R)"),
-                     ("other", "Other taxable income (prizes, rental profit, etc.)")]:
+                     ("other", "Other taxable income (prizes, rental profit, etc.)"),
+                     ("socialsecurity", "Social Security benefits (SSA-1099 box 5, both spouses)"),
+                     ("withheld", "Federal tax withheld on SSA-1099, 1099-R or 1099-G")]:
         f.label(M, y + 3, lab, 8.5)
         f.text(M + 330, y, 110, name=f"income_{key}", tip=lab, money=True)
         y -= 18
+
+    y -= 4
+    y = f.section(y, "Retirement & health savings (contributions for 2026)")
+    for key, lab in [("ira_you", "Traditional IRA contribution: you"), ("ira_spouse", "Traditional IRA contribution: spouse"),
+                     ("hsa_amount", "HSA contributions you made yourself (not through payroll)"),
+                     ("sep_amount", "SEP-IRA or solo 401(k) contributions (self-employed)")]:
+        f.label(M, y + 3, lab, 8.5)
+        f.text(M + 330, y, 110, name=key, tip=lab, money=True)
+        y -= 18
+    for key, lab in [("ira_covered_you", "You are covered by a retirement plan at work (W-2 box 13)"),
+                     ("ira_covered_spouse", "Spouse is covered by a retirement plan at work"),
+                     ("hsa_family", "HSA is family coverage (not self-only)")]:
+        f.check(M, y, key, lab)
+        f.label(M + 16, y + 2, lab, 8.5)
+        y -= 16
 
     # ---------- Page 3: expenses ----------
     y = f.new_page("Business expenses", "Self-employed only. Enter the full amount paid in 2026; we apply the meal limits and depreciation rules.")

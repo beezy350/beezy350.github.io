@@ -33,7 +33,9 @@
     data.status = fd.get('status') || 'single';
     // Answers on skipped steps never count
     if (data.hasDeps !== 'yes') { data.childrenUnder17 = 0; data.otherDependents = 0; data.childcare = false; }
-    if (data.status !== 'mfj') data.spouse65 = false;
+    if (data.status !== 'mfj') { data.spouse65 = false; data.iraSpouse = 0; data.iraCoveredSpouse = false; }
+    // tax withheld on Social Security / 1099-R / 1099-G counts with W-2 withholding
+    data.withheld = (Number(data.withheld) || 0) + (Number(data.otherWithheld) || 0);
     if (!data.isTrucker) { data.perDiemFull = 0; data.perDiemCanada = 0; data.perDiemPartial = 0; }
     if (!data.usesCar) { data.carMilesH1 = 0; data.carMilesH2 = 0; data.carMilesTotal = 0; data.carCosts = 0; }
     return data;
@@ -87,6 +89,7 @@
     const d = read();
     const s = d.status;
     spouseRow.hidden = s !== 'mfj';
+    form.querySelectorAll('.mfj-only').forEach((el) => { el.hidden = s !== 'mfj'; });
     if (spouseRow.hidden) $('spouse65').checked = false;
     $('note-mfj').hidden = s !== 'mfj';
     $('note-mfs').hidden = s !== 'mfs';
@@ -144,7 +147,12 @@
     if (d.studentLoan) docs.push('1098-E student loan interest statement');
     if (d.college) docs.push('1098-T tuition statement');
     if (d.marketplace) docs.push('1095-A Marketplace health insurance statement');
-    if (d.retirement || n(d.otherIncome)) docs.push('1099-R for retirement withdrawals, plus records for any other income');
+    if (n(d.retirementIncome)) docs.push('1099-R for each retirement withdrawal');
+    if (n(d.socialSecurity)) docs.push('SSA-1099 Social Security statement' + (d.status === 'mfj' ? ' for each spouse' : ''));
+    if (n(d.otherIncome)) docs.push('Records for any other income');
+    if (n(d.iraYou) || n(d.iraSpouse)) docs.push('IRA contribution statement (Form 5498) or account confirmation');
+    if (n(d.hsaContribution)) docs.push('HSA statements (Forms 5498-SA and 1099-SA)');
+    if (n(d.sepContribution)) docs.push('SEP-IRA or solo 401(k) contribution records');
     if (d.noSsn) docs.push('Passport or other identity documents for an ITIN application (Form W-7)');
     if (d.irsLetter) docs.push('Any letters you received from the IRS');
     return docs;
@@ -179,12 +187,15 @@
       const tbl = document.createElement('table');
       tbl.className = 'breakdown';
       for (const [name, value, cls] of [
-        ['Illinois base income (federal AGI)', st.base],
+        ['Federal adjusted gross income', st.agi],
+        st.retireSubtraction && ['Social Security and retirement income (not taxed in Illinois)', -st.retireSubtraction],
+        ['Illinois base income', st.base, 'sum'],
         [`Exemptions (${st.exemptionCount} × $2,850${st.exemptions > st.exemptionCount * 2850 ? ' + age 65' : ''})`, -st.exemptions],
         ['Taxable income', st.taxable, 'sum'],
         [`Illinois tax (${st.rateLabel})`, st.tax],
+        st.eic && ['Illinois earned income credit', st.eic],
         ['Illinois tax paid', st.paid],
-      ]) {
+      ].filter(Boolean)) {
         const tr = tbl.insertRow(); if (cls) tr.className = cls;
         const th = document.createElement('th'); th.textContent = name; tr.append(th);
         tr.insertCell().textContent = money(value);
@@ -211,8 +222,13 @@
     const rows = [
       r.carDeduction && [`Car (${r.carMethod === 'actual' ? 'actual costs, business share' : 'IRS mileage rate'}), already taken out of business income`, r.carDeduction, 'info'],
       r.perDiemDeduction && ['Truck per diem (80%), already taken out of business income', r.perDiemDeduction, 'info'],
+      r.taxableSocialSecurity && [`Taxable Social Security (of ${money(r.socialSecurity)}), included in total income`, r.taxableSocialSecurity, 'info'],
       ['Total income', r.totalIncome],
-      ['Adjusted gross income', r.agi],
+      r.halfSeTax && ['Half of self-employment tax', -r.halfSeTax],
+      r.sepDeduction && ['SEP / solo 401(k) deduction', -r.sepDeduction],
+      r.hsaDeduction && ['HSA deduction', -r.hsaDeduction],
+      r.iraDeduction && ['IRA deduction', -r.iraDeduction],
+      ['Adjusted gross income', r.agi, 'sum'],
       ['Standard deduction', -r.standardDeduction],
       r.tipsDeduction && ['Tips deduction', -r.tipsDeduction],
       r.overtimeDeduction && ['Overtime deduction', -r.overtimeDeduction],

@@ -122,7 +122,10 @@
         ['W-2 wages (incl. unreported cash tips)', num(d.wages)], ['Federal tax withheld', num(d.withheld)],
         ['State tax withheld', num(d.stateWithheld)], ['Tips (for the tips deduction)', num(d.tips)],
         ['Overtime premium', num(d.overtimePremium)], ['Self-employment gross receipts', seIncome],
-        ['Interest', num(d.interest)], ['Unemployment', num(d.unemployment)], ['Retirement and other income', num(d.otherIncome)],
+        ['Interest', num(d.interest)], ['Unemployment', num(d.unemployment)], ['Retirement withdrawals (1099-R, taxable)', num(d.retirementIncome)],
+        ['Social Security benefits (SSA-1099 box 5)', num(d.socialSecurity)], ['Other income', num(d.otherIncome)],
+        ['Traditional IRA contributions', num(d.iraYou) + num(d.iraSpouse)], ['HSA contributions (own)', num(d.hsaContribution)],
+        ['SEP / solo 401(k) contributions', num(d.sepContribution)],
         ['Federal estimated payments', num(d.estimatedPayments)], ['State estimated payments', num(d.stateEstimated)],
       ].filter(([, v]) => v),
       scheduleC: seIncome || totalExpenses ? { grossReceipts: seIncome, lines, unitemized, totalExpenses, netProfit, homeOffice: round2(homeOffice),
@@ -130,7 +133,10 @@
       vehicle,
       perDiem: r.perDiemDeduction ? { full: num(d.perDiemFull), canada: num(d.perDiemCanada), travel: num(d.perDiemPartial), deduction: r.perDiemDeduction } : null,
       federal: [
-        ['Total income', r.totalIncome], r.seTax && ['Half of self-employment tax', -round2(r.totalIncome - r.agi)], ['Adjusted gross income', r.agi, 'sum'],
+        r.taxableSocialSecurity && [`Taxable Social Security (of ${$(r.socialSecurity)})`, r.taxableSocialSecurity],
+        ['Total income', r.totalIncome], r.halfSeTax && ['Half of self-employment tax', -r.halfSeTax],
+        r.sepDeduction && ['SEP / solo 401(k) deduction', -r.sepDeduction], r.hsaDeduction && ['HSA deduction (Form 8889)', -r.hsaDeduction],
+        r.iraDeduction && ['IRA deduction', -r.iraDeduction], ['Adjusted gross income', r.agi, 'sum'],
         ['Standard deduction', r.standardDeduction], r.tipsDeduction && ['Tips deduction', r.tipsDeduction],
         r.overtimeDeduction && ['Overtime deduction', r.overtimeDeduction], r.seniorDeduction && ['Senior deduction', r.seniorDeduction],
         r.qbiDeduction && ['Qualified business income deduction', r.qbiDeduction], ['Taxable income', r.taxableIncome, 'sum'],
@@ -142,8 +148,9 @@
         [r.result >= 0 ? 'Estimated federal refund' : 'Estimated federal amount owed', Math.abs(r.result), 'sum'],
       ].filter(Boolean),
       state: st && st.kind === 'supported' ? { name: st.name, rows: [
+        ['Federal AGI', st.agi], ['Social Security and retirement subtraction', -(st.retireSubtraction || 0)],
         [`${st.name} base income`, st.base], ['Exemptions', st.exemptions], ['Taxable', st.taxable, 'sum'],
-        [`Tax (${st.rateLabel})`, st.tax], ['Paid', st.paid],
+        [`Tax (${st.rateLabel})`, st.tax], ['Earned income credit (20% of federal)', st.eic || 0], ['Paid', st.paid],
         [st.result >= 0 ? 'Estimated refund' : 'Estimated amount owed', Math.abs(st.result), 'sum']] }
         : st && st.kind === 'no-tax' ? { name: st.name, note: `${st.name} has no tax on wages or business income.` }
         : st && st.kind === 'coming-soon' ? { name: st.name, note: `${st.name} estimate not available yet; prepare the state return separately.` } : null,
@@ -181,6 +188,12 @@
     if (d.college) q.push('Form 1098-T for education credits.');
     if (d.mortgage || d.studentLoan) q.push('Form 1098 / 1098-E: compare itemizing with the standard deduction; student loan interest is an adjustment.');
     if (d.irsLetter) q.push('Get a copy of the IRS or state letter.');
+    if (num(d.socialSecurity)) q.push('SSA-1099 for each person: confirm box 5 and any withholding (box 6); Medicare premiums matter only if itemizing.');
+    if (num(d.retirementIncome)) q.push('1099-R: check the distribution code (box 7). Early withdrawals before 59 1/2 may owe a 10% additional tax (Form 5329) not in this estimate; rollovers are not taxable.');
+    if (num(d.iraYou) || num(d.iraSpouse)) q.push('IRA: confirm traditional (not Roth), contributed by April 15, 2027, and workplace-plan coverage (W-2 box 13). File Form 8606 for any nondeductible part.');
+    if (num(d.hsaContribution) && (d.you65 || d.spouse65)) q.push('HSA after 65: once enrolled in Medicare (Part A), no new HSA contributions are allowed. Check Medicare start dates.');
+    if (num(d.hsaContribution)) q.push('HSA (Form 8889): months covered by a high-deductible plan, coverage type, employer contributions (W-2 code W) and any withdrawals (1099-SA).');
+    if (num(d.sepContribution)) q.push('SEP / solo 401(k): confirm the plan exists and the contribution is made by the return due date (including extensions).');
     if (st && st.kind === 'coming-soon') q.push(`${st.name} return is not in this estimate.`);
     if (se && !itemized && num(d.seExpenses)) q.push('Business expenses were entered as one total. Get the itemized list and receipts.');
     return q;

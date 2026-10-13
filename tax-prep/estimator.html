@@ -313,8 +313,51 @@
           <div class="field">
             <label for="otherIncome">Other taxable income</label>
             <div class="money"><input type="number" id="otherIncome" name="otherIncome" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
-            <p class="est-help">Retirement withdrawals, rental profit, prizes.</p>
+            <p class="est-help">Rental profit, prizes, other taxable income.</p>
           </div>
+          <div class="field">
+            <label for="retirementIncome">Retirement withdrawals (taxable)</label>
+            <div class="money"><input type="number" id="retirementIncome" name="retirementIncome" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">401(k), IRA or pension: 1099-R box 2a.</p>
+          </div>
+          <div class="field">
+            <label for="socialSecurity">Social Security benefits</label>
+            <div class="money"><input type="number" id="socialSecurity" name="socialSecurity" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">SSA-1099 box 5<span class="mfj-only" hidden>, both spouses</span>. We figure the taxable part.</p>
+          </div>
+          <div class="field">
+            <label for="otherWithheld">Federal tax withheld on these</label>
+            <div class="money"><input type="number" id="otherWithheld" name="otherWithheld" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">SSA-1099 box 6, 1099-R box 4, 1099-G box 4.</p>
+          </div>
+        </div>
+        <p class="est-subhead">Retirement &amp; health savings for 2026</p>
+        <div class="field-grid">
+          <div class="field">
+            <label for="iraYou">Traditional IRA you put in</label>
+            <div class="money"><input type="number" id="iraYou" name="iraYou" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">Up to $7,500 ($8,600 at 50+). Roth doesn't count.</p>
+          </div>
+          <div class="field mfj-only" hidden>
+            <label for="iraSpouse">Traditional IRA your spouse put in</label>
+            <div class="money"><input type="number" id="iraSpouse" name="iraSpouse" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+          </div>
+          <div class="field">
+            <label for="hsaContribution">HSA you put in yourself</label>
+            <div class="money"><input type="number" id="hsaContribution" name="hsaContribution" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">Not payroll contributions (W-2 code W).</p>
+          </div>
+          <div class="field">
+            <label for="sepContribution">SEP-IRA or solo 401(k)</label>
+            <div class="money"><input type="number" id="sepContribution" name="sepContribution" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+            <p class="est-help">Self-employed only.</p>
+          </div>
+        </div>
+        <div class="check-list two-col">
+          <label class="check"><input type="checkbox" name="iraCoveredYou"> I have a retirement plan at work (W-2 box 13)</label>
+          <label class="check mfj-only" hidden><input type="checkbox" name="iraCoveredSpouse"> My spouse has a retirement plan at work</label>
+          <label class="check"><input type="checkbox" name="you50"> I'm 50 or older (higher IRA limit)</label>
+          <label class="check"><input type="checkbox" name="hsaFamily"> My HSA is family coverage</label>
         </div>
         <p class="est-subhead">Check any that apply in 2026:</p>
         <div class="check-list two-col">
@@ -323,7 +366,6 @@
           <label class="check"><input type="checkbox" name="studentLoan"> Paid student loan interest</label>
           <label class="check"><input type="checkbox" name="college"> Paid college tuition</label>
           <label class="check"><input type="checkbox" name="marketplace"> Had health insurance from the Marketplace</label>
-          <label class="check"><input type="checkbox" name="retirement"> Took money from a 401(k) or IRA</label>
           <label class="check"><input type="checkbox" name="noSsn"> Someone on the return has no SSN</label>
           <label class="check"><input type="checkbox" name="irsLetter"> Received a letter from the IRS</label>
         </div>

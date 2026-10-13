@@ -24,7 +24,7 @@ W, H = letter
 NAVY, GOLD, INK, MUTED, BOX = (HexColor(c) for c in ["#1D3557", "#C8963E", "#1B2230", "#5A6475", "#7F8A9A"])
 SOFT = HexColor("#F4F5F7")
 M = 34
-SHEETS = 8  # cover + pages 1, 2, 3 (four sheets), 4
+SHEETS = 9  # cover + page 1, page 2 (two sheets), page 3 (four sheets), page 4
 
 # Filing-type editions: key -> (file name, short label, full name, colour, who qualifies)
 TYPES = {
@@ -181,13 +181,13 @@ def guide_for_type(s, y):
     y = s.section(y, "What to fill in")
     todo = {
         "single": ["Page 1 · State, your birth year, dependents (if any)*, checklist",
-                   "Page 2 · Your W-2 jobs, self-employment, cash and other income"],
+                   "Page 2 · W-2 jobs, self-employment, other income, Social Security, IRA and HSA (2 sheets)"],
         "mfj": ["Page 1 · State, your AND your spouse's birth year, dependents, checklist",
-                "Page 2 · W-2 jobs, self-employment, cash and other income for BOTH spouses"],
+                "Page 2 · Jobs, self-employment, other income, Social Security, IRA and HSA for BOTH spouses (2 sheets)"],
         "mfs": ["Page 1 · State, your birth year, dependents you claim, checklist",
-                "Page 2 · Only YOUR OWN jobs and income (not your spouse's)"],
+                "Page 2 · Only YOUR OWN jobs, income, Social Security and savings (2 sheets)"],
         "hoh": ["Page 1 · State, birth year, checklist, and Dependents (REQUIRED: your qualifying person)",
-                "Page 2 · Your W-2 jobs, self-employment, cash and other income"],
+                "Page 2 · W-2 jobs, self-employment, other income, Social Security, IRA and HSA (2 sheets)"],
     }[s.kind_key]
     todo += ["Page 3 · Business expenses, car, rideshare & delivery: only if you are self-employed (4 sheets)",
              "Page 4 · Truck-driver trips (self-employed drivers) and estimated tax payments you made"]
@@ -223,7 +223,7 @@ def guide_all_types(s, y):
         ("Page 1 · Dependents table", "If any*", "If any", "If any", "Required"),
         ("Page 1 · Checklist", "Yes", "Yes", "Yes", "Yes"),
         ("Page 2 · W-2 jobs", "Yours", "Both spouses", "Yours only", "Yours"),
-        ("Page 2 · Self-employment, cash & other income", "Yours", "Both spouses", "Yours only", "Yours"),
+        ("Page 2 · Self-employment, other income, Social Security, IRA/HSA", "Yours", "Both spouses", "Yours only", "Yours"),
         ("Page 3 · Business expenses", "If self-employed", "If self-employed", "If self-employed", "If self-employed"),
         ("Page 4 · Truck driver trips", "If trucker", "If trucker", "If trucker", "If trucker"),
         ("Page 4 · Estimated tax payments", "If paid", "If paid", "If paid", "If paid"),
@@ -351,13 +351,30 @@ def pages(s, k):
     y -= 22
     y = s.section(y, "Self-employment & cash income (1099-NEC, 1099-K, cash, Zelle, checks)")
     y = s.table(y, [("Payer or description", 260, False), ("Type (1099-NEC / 1099-K / Cash / App)", 160, False), ("Amount received", 124, True)], 8, row_h=25)
-    y -= 6
+    # ---------- Page 2 continued: other income, Social Security, savings ----------
+    y = s.page(2, "Social Security, retirement & savings", "Other income, plus what you put into an IRA, HSA or SEP for 2026.", cont=True)
     y = s.section(y, "Other income") - 10
     for lab in ["Cash tips NOT reported to your employer", "Bank interest (1099-INT)", "Unemployment benefits (1099-G)",
-                "Retirement withdrawals, taxable amount (1099-R)", "Other taxable income (prizes, rental profit, etc.)"]:
+                "Retirement withdrawals, taxable amount (1099-R)", "Other taxable income (prizes, rental profit, etc.)",
+                "Social Security benefits (SSA-1099 box 5" + (", both spouses)" if k in (None, "mfj") else ")"),
+                "Federal tax withheld on SSA-1099, 1099-R or 1099-G"]:
         s.text(M, y + 5, lab, 9.5)
         s.box(M + 330, y - 2, 150, 22, dollar=True)
         y -= 27
+    y -= 8
+    y = s.section(y, "Retirement & health savings (contributions for 2026)") - 10
+    spouse = k in (None, "mfj")
+    for lab in ["Traditional IRA contribution: you"] + (["Traditional IRA contribution: spouse"] if spouse else []) + [
+                "HSA contributions you made yourself (not through payroll)", "SEP-IRA or solo 401(k) contributions (self-employed)"]:
+        s.text(M, y + 5, lab, 9.5)
+        s.box(M + 330, y - 2, 150, 22, dollar=True)
+        y -= 27
+    for lab in ["You are covered by a retirement plan at work (W-2 box 13)"] + (["Spouse is covered by a retirement plan at work"] if spouse else []) + [
+                "HSA is family coverage (not self-only)"]:
+        s.check(M, y)
+        s.text(M + 18, y + 3, lab, 9.5)
+        y -= 22
+    s.text(M, y - 4, "Traditional IRA only (Roth isn't deductible). Contributions made by April 15, 2027 can count for 2026.", 8, MUTED)
 
     # ---------- Page 3: expenses over two sheets ----------
     groups, current = [], None

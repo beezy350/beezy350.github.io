@@ -337,7 +337,11 @@ ${catalog}`;
     const rows = [
       r.carDeduction && [`Car (${r.carMethod === 'actual' ? 'actual costs' : 'mileage rate'}), in business income`, r.carDeduction],
       r.perDiemDeduction && ['Truck per diem (80%), in business income', r.perDiemDeduction],
-      ['Total income', r.totalIncome], ['Adjusted gross income', r.agi], ['Standard deduction', -r.standardDeduction],
+      r.taxableSocialSecurity && [`Taxable Social Security (of ${money(r.socialSecurity)})`, r.taxableSocialSecurity],
+      ['Total income', r.totalIncome], r.halfSeTax && ['Half of self-employment tax', -r.halfSeTax],
+      r.sepDeduction && ['SEP / solo 401(k)', -r.sepDeduction], r.hsaDeduction && ['HSA deduction', -r.hsaDeduction],
+      r.iraDeduction && ['IRA deduction', -r.iraDeduction],
+      ['Adjusted gross income', r.agi], ['Standard deduction', -r.standardDeduction],
       r.tipsDeduction && ['Tips deduction', -r.tipsDeduction], r.overtimeDeduction && ['Overtime deduction', -r.overtimeDeduction],
       r.seniorDeduction && ['Senior deduction', -r.seniorDeduction], r.qbiDeduction && ['Business income deduction', -r.qbiDeduction],
       ['Taxable income', r.taxableIncome, 'sum'], ['Income tax', r.incomeTax],

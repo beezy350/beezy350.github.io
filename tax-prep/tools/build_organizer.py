@@ -125,6 +125,17 @@ EXPENSES = [
 
 RIDESHARE_GROUP = "RIDESHARE & DELIVERY"
 
+# Retirement & health savings rows on the Income tab: (row, label, form, kind)
+SAVINGS = [
+    (34, "Traditional IRA contribution: you", "Form 5498", "money"),
+    (35, "Traditional IRA contribution: spouse", "Form 5498", "money"),
+    (36, "You are covered by a retirement plan at work", "W-2 box 13", "yes"),
+    (37, "Spouse is covered by a retirement plan at work", "W-2 box 13", "yes"),
+    (38, "HSA contributions you made yourself (not through payroll)", "Form 5498-SA", "money"),
+    (39, "HSA coverage", "Self-only / Family", "coverage"),
+    (40, "SEP-IRA or solo 401(k) contributions (self-employed)", "", "money"),
+]
+
 # Business car (rideshare, delivery or any business car, not semi-trucks).
 # Miles are split at June 30: the IRS rate was 72.5 cents through June and
 # 76 cents from July 1, 2026 (Notice 2026-10, Announcement 2026-11).
@@ -359,11 +370,32 @@ def build(sample=False):
         (26, "Unemployment benefits", "1099-G"),
         (27, "Retirement withdrawals (taxable amount)", "1099-R"),
         (28, "Other taxable income (prizes, rental profit, etc.)", ""),
+        (29, "Social Security benefits (box 5, both spouses)", "SSA-1099"),
+        (30, "Federal tax withheld on Social Security, retirement or unemployment", "SSA-1099 / 1099-R / 1099-G"),
     ]
     for rr, lab, form in other:
         ic.cell(row=rr, column=1, value=lab).font = font()
         ic.cell(row=rr, column=2, value=form).font = font(color="5A6475")
         inp(ic.cell(row=rr, column=3), MONEY)
+
+    ic["A32"] = "Retirement & health savings (contributions for 2026)"
+    ic["A32"].font = font(size=12, bold=True, color=NAVY)
+    header(ic, 33, ["Item", "Form", "Amount or answer"])
+    dv_yn = DataValidation(type="list", formula1='"Yes,No"', allow_blank=True)
+    dv_cov = DataValidation(type="list", formula1='"Self-only,Family"', allow_blank=True)
+    ic.add_data_validation(dv_yn)
+    ic.add_data_validation(dv_cov)
+    for rr, lab, form, kind in SAVINGS:
+        ic.cell(row=rr, column=1, value=lab).font = font()
+        ic.cell(row=rr, column=2, value=form).font = font(color="5A6475")
+        inp(ic.cell(row=rr, column=3), MONEY if kind == "money" else None)
+        if kind == "yes":
+            dv_yn.add(f"C{rr}")
+        if kind == "coverage":
+            dv_cov.add(f"C{rr}")
+    note(ic, "A42", "Traditional IRA only (Roth contributions aren't deductible). Contributions made by April 15, 2027 can count for 2026. "
+                    "HSA: only what you put in yourself, not payroll contributions (W-2 code W).")
+    ic.merge_cells("A42:C43")
     protect(ic)
 
     # ---------------- Expenses ----------------
@@ -541,7 +573,7 @@ def build(sample=False):
         ("hasDeps", "Has dependents", '=IF(C9+C10>0,"yes","no")'),
         ("childcare", "Paid childcare", yes("Household!B8")),
         ("wages", "W-2 wages plus unreported cash tips", "=Jobs!C16+Income!C24"),
-        ("withheld", "Federal tax withheld", "=Jobs!D16"),
+        ("withheld", "Federal tax withheld (W-2 and other forms)", "=Jobs!D16+N(Income!C30)"),
         ("stateWithheld", "State tax withheld", "=Jobs!E16"),
         ("tips", "Tips (W-2 and cash)", "=Jobs!F16+Income!C24"),
         ("overtimePremium", "Overtime premium", "=Jobs!G16"),
@@ -560,7 +592,19 @@ def build(sample=False):
         ("carCosts", "Actual car costs (before business share)", f'=N({car_rows["costs"]})'),
         ("interest", "Bank interest", "=Income!C25"),
         ("unemployment", "Unemployment", "=Income!C26"),
-        ("otherIncome", "Retirement withdrawals and other income", "=Income!C27+Income!C28"),
+        ("otherIncome", "Other taxable income", "=N(Income!C28)"),
+        ("retirementIncome", "Retirement withdrawals (taxable)", "=N(Income!C27)"),
+        ("socialSecurity", "Social Security benefits", "=N(Income!C29)"),
+        ("iraYou", "IRA contribution: you", "=N(Income!C34)"),
+        ("iraSpouse", "IRA contribution: spouse", "=N(Income!C35)"),
+        ("iraCoveredYou", "You covered by a workplace plan", yes("Income!C36")),
+        ("iraCoveredSpouse", "Spouse covered by a workplace plan", yes("Income!C37")),
+        ("hsaContribution", "HSA contributions", "=N(Income!C38)"),
+        ("hsaFamily", "HSA family coverage", '=IF(TRIM(Income!C39)="Family",1,0)'),
+        ("sepContribution", "SEP / solo 401(k)", "=N(Income!C40)"),
+        ("you50", "You 50 or older (born 1976 or earlier)", '=IF(AND(ISNUMBER(Household!B6),Household!B6>0,Household!B6<=1976),1,0)'),
+        ("spouse50", "Spouse 50 or older", '=IF(AND(ISNUMBER(Household!B7),Household!B7>0,Household!B7<=1976),1,0)'),
+        ("you55", "You 55 or older (HSA catch-up)", '=IF(AND(ISNUMBER(Household!B6),Household!B6>0,Household!B6<=1971),1,0)'),
         ("retirement", "Has retirement withdrawals", '=IF(Income!C27>0,1,0)'),
     ]
     for i, (key, _) in enumerate(CHECKLIST):

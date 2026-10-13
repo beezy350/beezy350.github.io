@@ -45,6 +45,16 @@
     investmentLimit: 12200, // no credit if investment income is over this
   };
 
+  // Retirement and health savings, 2026 (IRS Notice 2025-67, Rev. Proc. 2025-19)
+  const IRA = { limit: 7500, catchUp: 1100,
+    // deduction phase-out when covered by a workplace plan
+    covered: { single: [81000, 91000], hoh: [81000, 91000], mfj: [129000, 149000], mfs: [0, 10000] },
+    spouseCovered: { mfj: [242000, 252000], mfs: [0, 10000] } };
+  const HSA = { self: 4400, family: 8750, catchUp: 1000 };
+  const SEP_MAX = 72000;
+  // Social Security: base amounts for the taxable-benefits worksheet (Pub. 915)
+  const SS_BASE = { single: [25000, 34000], hoh: [25000, 34000], mfj: [32000, 44000] };
+
   const SS_WAGE_BASE = 184500;
   // Transportation-industry per diem (IRS Notice 2026-60): $80/day in the U.S.,
   // travel days at 75%, 80% deductible for drivers under DOT hours rules.
@@ -85,6 +95,27 @@
   function phaseDown(amount, magi, threshold) {
     if (magi <= threshold) return amount;
     return Math.max(0, amount - Math.ceil((magi - threshold) / 1000) * 100);
+  }
+
+  // Taxable part of Social Security benefits (up to 85%). otherIncome is
+  // income without the benefits, after adjustments. Married filing
+  // separately assumes the spouses lived together (base amount $0).
+  function taxableSocialSecurity(ss, otherIncome, status) {
+    if (!ss) return 0;
+    const prov = Math.max(0, otherIncome) + ss / 2;
+    if (status === 'mfs') return Math.min(0.85 * ss, 0.85 * prov);
+    const [b1, b2] = SS_BASE[status] || SS_BASE.single;
+    if (prov <= b1) return 0;
+    if (prov <= b2) return Math.min(0.5 * ss, 0.5 * (prov - b1));
+    return Math.min(0.85 * ss, 0.85 * (prov - b2) + Math.min(0.5 * ss, 0.5 * (b2 - b1)));
+  }
+
+  // IRA deduction left after the workplace-plan phase-out (rounded up to $10, at least $200)
+  function iraPhase(amount, magi, range) {
+    if (!range || !amount || magi <= range[0]) return amount;
+    if (magi >= range[1]) return 0;
+    const left = Math.ceil((amount * (range[1] - magi)) / (range[1] - range[0]) / 10) * 10;
+    return Math.min(amount, Math.max(200, left));
   }
 
   function estimate(input) {
@@ -155,8 +186,43 @@
     }
     const halfSeTax = seTax / 2;
 
-    const totalIncome = wages + seNet + interest + unemployment + otherIncome;
-    const agi = Math.max(0, totalIncome - halfSeTax);
+    // Retirement and health savings (Schedule 1 adjustments)
+    const seComp = Math.max(0, seNet - halfSeTax);
+    const sepWanted = num(input.sepContribution);
+    const sepDeduction = Math.min(sepWanted, seComp * 0.2, SEP_MAX);
+    if (sepWanted > sepDeduction + 0.5) notes.push(`SEP / solo 401(k): only $${Math.round(sepDeduction).toLocaleString('en-US')} counts here (20% of self-employment earnings after half the SE tax, up to $72,000). A solo 401(k) can allow more; a preparer will check.`);
+    const hsaWanted = num(input.hsaContribution);
+    const hsaLimit = (input.hsaFamily ? HSA.family : HSA.self) + (input.you55 ? HSA.catchUp : 0);
+    const hsaDeduction = Math.min(hsaWanted, hsaLimit);
+    if (hsaWanted > hsaDeduction) notes.push(`HSA: the 2026 limit is $${hsaLimit.toLocaleString('en-US')} for your coverage, including what your employer put in.`);
+
+    const socialSecurity = num(input.socialSecurity);
+    const retirementIncome = num(input.retirementIncome);
+    const incomeNoSs = wages + seNet + interest + unemployment + otherIncome + retirementIncome;
+    const adjBeforeIra = halfSeTax + sepDeduction + hsaDeduction;
+
+    // Traditional IRA: per-person limit, capped by pay, phased out with a workplace plan.
+    // MAGI uses taxable Social Security figured before the IRA deduction (Pub. 590-A).
+    const iraMagi = incomeNoSs + taxableSocialSecurity(socialSecurity, incomeNoSs - adjBeforeIra, status) - adjBeforeIra;
+    const comp = Math.max(0, wages + seComp - sepDeduction);
+    const youOld = input.you50 || input.you65, spouseOld = input.spouse50 || input.spouse65;
+    const youAsked = num(input.iraYou), spouseAsked = married ? num(input.iraSpouse) : 0;
+    const youIra = Math.min(youAsked, IRA.limit + (youOld ? IRA.catchUp : 0), comp);
+    const spouseIra = Math.min(spouseAsked, IRA.limit + (spouseOld ? IRA.catchUp : 0), Math.max(0, comp - youIra));
+    const range = (covered, otherCovered) => (covered ? IRA.covered[status] : otherCovered ? IRA.spouseCovered[status] : null);
+    const iraDeduction = iraPhase(youIra, iraMagi, range(input.iraCoveredYou, (married || mfs) && input.iraCoveredSpouse)) +
+      iraPhase(spouseIra, iraMagi, range(input.iraCoveredSpouse, input.iraCoveredYou));
+    if (youAsked + spouseAsked > iraDeduction + 0.5) {
+      notes.push('Part of the IRA contribution is not deductible (over the limit, more than your pay, or phased out by a workplace plan). The rest can stay as a nondeductible contribution (Form 8606) or go to a Roth IRA.');
+    }
+
+    const taxableSs = taxableSocialSecurity(socialSecurity, incomeNoSs - adjBeforeIra - iraDeduction, status);
+    if (socialSecurity) {
+      notes.push(`${taxableSs ? '$' + Math.round(taxableSs).toLocaleString('en-US') : 'None'} of your Social Security is taxable (it can be up to 85%).${mfs ? ' Married filing separately assumes you lived with your spouse.' : ''}`);
+    }
+
+    const totalIncome = incomeNoSs + taxableSs;
+    const agi = Math.max(0, totalIncome - halfSeTax - sepDeduction - hsaDeduction - iraDeduction);
 
     // Standard deduction (+ age 65 add-on)
     const standard = STANDARD_DEDUCTION[status] + AGE65_EXTRA[status] * seniors;
@@ -176,7 +242,7 @@
 
     // Qualified business income deduction, simple case only
     let qbi = 0;
-    const qbiBase = seNet - halfSeTax;
+    const qbiBase = seNet - halfSeTax - sepDeduction;
     if (qbiBase > 0) {
       // Above the threshold the deduction phases down to zero over the
       // phase-in range (sole proprietor with no W-2 payroll or property).
@@ -253,6 +319,13 @@
       seniorDeduction: round(seniorDeduction),
       qbiDeduction: round(qbi),
       perDiemDeduction: round(perDiemDeduction),
+      socialSecurity: round(socialSecurity),
+      taxableSocialSecurity: round(taxableSs),
+      retirementIncome: round(retirementIncome),
+      iraDeduction: round(iraDeduction),
+      hsaDeduction: round(hsaDeduction),
+      sepDeduction: round(sepDeduction),
+      halfSeTax: round(halfSeTax),
       carDeduction: round(carDeduction),
       carMethod,
       carStandard: round(carStandard),

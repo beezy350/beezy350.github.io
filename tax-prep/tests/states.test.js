@@ -33,6 +33,16 @@ eq(St.estimateState('TX', { stateWithheld: 0 }, estimate({ status: 'single' })).
 eq(St.estimateState('FL', { stateWithheld: 100 }, estimate({ status: 'single' })).result, 100);
 eq(St.estimateState('CA', {}, estimate({ status: 'single' })).kind, 'coming-soon');
 eq(St.estimateState('', {}, estimate({ status: 'single' })).kind, 'none');
+// Illinois does not tax Social Security or retirement income
+const ret = { status: 'single', you65: true, socialSecurity: 24000, retirementIncome: 20000, interest: 1000 };
+const rf = estimate(ret);
+const ri = St.estimateState('IL', ret, rf);
+eq([ri.retireSubtraction, ri.base], [rf.taxableSocialSecurity + 20000, 1000]);
+// Illinois earned income credit: 20% of the federal credit, refundable
+const ek = { status: 'mfj', childrenUnder17: 2, seIncome: 90000, seExpenses: 43517.5 };
+const ef = estimate(ek);
+eq(St.estimateState('IL', ek, ef).eic, Math.round(ef.eitc * 0.2));
+
 eq(Object.keys(St.NAMES).length, 51, '50 states + DC');
 eq(St.NO_WAGE_TAX.length, 9);
 
