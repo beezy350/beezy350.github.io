@@ -373,8 +373,8 @@ def build(sample=False):
     # ---------------- Trips ----------------
     tp = wb.create_sheet("Trips")
     title(tp, "Truck driver trips (per diem)", "Self-employed drivers away from home overnight. One row per trip.")
-    header(tp, 4, ["Left home (date)", "Got back (date)", "Full days in Canada", "Full days away", "Travel days (75%)", "Per diem"],
-           [18, 18, 16, 16, 16, 16])
+    header(tp, 4, ["Left home (date)", "Got back (date)", "Full days in Canada", "Full days away", "Travel days (75%)", "Per diem", "Check"],
+           [18, 18, 16, 16, 16, 16, 24])
     example(tp, 5, ["2026-03-02", "2026-03-09", 0, 6, 2, 600], [None, None, None, None, None, MONEY])
     for rr in range(6, 36):
         inp(tp.cell(row=rr, column=1), "yyyy-mm-dd")
@@ -387,6 +387,8 @@ def build(sample=False):
         tp.cell(row=rr, column=5, value=f'=IF({ok},{in_year(f"A{rr}")}*1+{in_year(f"B{rr}")}*1,0)').number_format = "0"
         f = tp.cell(row=rr, column=6, value=f"=(D{rr}-MIN(C{rr},D{rr}))*Data!$C$40+MIN(C{rr},D{rr})*Data!$C$41+E{rr}*Data!$C$40*Data!$C$42")
         f.number_format = MONEY
+        # warn when two trips share days (the website counts each day once)
+        tp.cell(row=rr, column=7, value=f'=IF(AND({ok},SUMPRODUCT(ISNUMBER($A$6:$A$35)*ISNUMBER($B$6:$B$35)*($A$6:$A$35<B{rr})*($B$6:$B$35>A{rr}))>1),"Overlaps another trip","")').font = font(color="A3472B", bold=True)
     tr = 36
     tp.cell(row=tr, column=1, value="Total").font = font(bold=True)
     for col, f in [(3, "=SUM(C6:C35)"), (4, "=SUM(D6:D35)"), (5, "=SUM(E6:E35)"), (6, "=SUM(F6:F35)")]:
@@ -474,7 +476,8 @@ def build(sample=False):
         ("estimatedPayments", "Federal estimated payments", "=Payments!B9"),
         ("stateEstimated", "State estimated payments", "=Payments!D9"),
         ("isTrucker", "Logged truck driver trips", "=IF(Trips!D36+Trips!E36>0,1,0)"),
-        ("perDiemFull", "Full days away (Canada days converted to $80 days)", "=ROUND(MIN(365,Trips!D36+SUMPRODUCT((Trips!C6:C35<Trips!D6:D35)*Trips!C6:C35+(Trips!C6:C35>=Trips!D6:D35)*Trips!D6:D35)*(C41/C40-1)),2)"),
+        ("perDiemFull", "Full days away (U.S. and Canada)", "=MIN(365,Trips!D36)"),
+        ("perDiemCanada", "Of those, full days in Canada", "=MIN(C23,SUMPRODUCT((Trips!C6:C35<Trips!D6:D35)*Trips!C6:C35+(Trips!C6:C35>=Trips!D6:D35)*Trips!D6:D35))"),
         ("perDiemPartial", "Travel days (75%)", "=Trips!E36"),
         ("interest", "Bank interest", "=Income!C25"),
         ("unemployment", "Unemployment", "=Income!C26"),

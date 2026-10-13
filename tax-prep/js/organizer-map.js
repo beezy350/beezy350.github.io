@@ -5,7 +5,6 @@
 // No DOM; runs in the browser or in Node tests.
 // ============================================
 (function (root) {
-  const PER_DIEM = { us: 80, canada: 86 }; // IRS Notice 2026-60
 
   function money(v) {
     if (v == null) return 0;
@@ -18,8 +17,9 @@
     return paren ? -Math.abs(n) : n;
   }
 
-  // 2026-03-02, 3/2/2026, 3/2/26, 03-02-2026 -> UTC day number
+  // 2026-03-02, 3/2/2026, 3/2/26, 03-02-2026 or a Date -> UTC day number
   function day(v) {
+    if (v instanceof Date) return Number.isFinite(v.getTime()) ? Math.round(Date.UTC(v.getUTCFullYear(), v.getUTCMonth(), v.getUTCDate()) / 86400000) : null;
     const s = String(v || '').trim();
     let y, m, d;
     let r = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
@@ -44,6 +44,27 @@
     if (names[up]) return up;
     const hit = Object.entries(names).find(([, n]) => n.toLowerCase() === s.toLowerCase());
     return hit ? hit[0] : '';
+  }
+
+  // Trips -> per diem day counts. Only 2026 days count, and a day on two
+  // overlapping trips counts once (a full day away beats a travel day).
+  // Shared by the PDF and Excel uploads so both give the same answer.
+  function perDiemDays(trips) {
+    const Y0 = day('2026-01-01'), Y1 = day('2026-12-31');
+    const days = new Map(); // day number -> 'full' | 'travel'
+    let canada = 0;
+    for (const t of trips) {
+      const a = day(t.leave), b = day(t.back);
+      if (a == null || b == null || b <= a) continue;
+      let tripFull = 0;
+      for (let d = Math.max(a, Y0); d <= Math.min(b, Y1); d++) {
+        if (d > a && d < b) { days.set(d, 'full'); tripFull++; } else if (!days.has(d)) days.set(d, 'travel');
+      }
+      canada += Math.min(tripFull, Math.max(0, Math.floor(money(t.canada))));
+    }
+    let full = 0, travel = 0;
+    for (const v of days.values()) if (v === 'full') full++; else travel++;
+    return { full, canada: Math.min(canada, full), travel };
   }
 
   function fromPdfFields(f, stateNames) {
@@ -71,24 +92,8 @@
       if (m) expenses += money(v) * Number(m[1]) / 100;
     }
 
-    // Only 2026 days count, and a day on two overlapping trips counts once
-    // (a full day away beats a travel day).
-    const Y0 = day('2026-01-01'), Y1 = day('2026-12-31');
-    const days = new Map(); // day number -> 'full' | 'travel'
-    let fullCanada = 0;
-    for (const i of rows('trip', 60)) {
-      const a = day(get(`trip${i}_leave`)), b = day(get(`trip${i}_return`));
-      if (a == null || b == null || b <= a) continue;
-      let tripFull = 0;
-      for (let d = Math.max(a, Y0); d <= Math.min(b, Y1); d++) {
-        if (d > a && d < b) { days.set(d, 'full'); tripFull++; } else if (!days.has(d)) days.set(d, 'travel');
-      }
-      fullCanada += Math.min(tripFull, Math.max(0, Math.floor(money(get(`trip${i}_canada`)))));
-    }
-    let full = 0, travel = 0;
-    for (const t of days.values()) if (t === 'full') full++; else travel++;
-    fullCanada = Math.min(fullCanada, full);
-    const fullUs = full - fullCanada;
+    const trips = perDiemDays(rows('trip', 60).map((i) => ({
+      leave: get(`trip${i}_leave`), back: get(`trip${i}_return`), canada: get(`trip${i}_canada`) })));
 
     const retirement = money(get('income_retirement'));
     const out = {
@@ -109,9 +114,10 @@
       seExpenses: Math.round(expenses * 100) / 100,
       estimatedPayments: sum('pay', 'fed', 4),
       stateEstimated: sum('pay', 'state', 4),
-      isTrucker: fullUs + fullCanada + travel > 0 ? 1 : 0,
-      perDiemFull: Math.round((fullUs + fullCanada * PER_DIEM.canada / PER_DIEM.us) * 100) / 100,
-      perDiemPartial: travel,
+      isTrucker: trips.full + trips.travel > 0 ? 1 : 0,
+      perDiemFull: trips.full,
+      perDiemCanada: trips.canada,
+      perDiemPartial: trips.travel,
       interest: money(get('income_interest')),
       unemployment: money(get('income_unemployment')),
       otherIncome: retirement + money(get('income_other')),
@@ -126,7 +132,7 @@
   // True when the field list belongs to the Falcon organizer PDF
   const isOrganizer = (names) => names.includes('status_single') && names.some((n) => /^exp_fuel_diesel_100$/.test(n));
 
-  const api = { fromPdfFields, isOrganizer, money, day };
+  const api = { fromPdfFields, perDiemDays, isOrganizer, money, day };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.OrganizerMap = api;
 })(typeof window !== 'undefined' ? window : globalThis);

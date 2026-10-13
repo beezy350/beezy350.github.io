@@ -29,6 +29,8 @@ const cases = [
     { seTax: 0 }],
   ['per diem capped at 365 days', { status: 'single', seIncome: 500000, perDiemFull: 5000, perDiemPartial: 10 },
     { perDiemDeduction: 365 * 80 * 0.8 }],
+  ['a full year in Canada keeps the $86 rate', { status: 'single', seIncome: 500000, perDiemFull: 400, perDiemCanada: 400 },
+    { perDiemDeduction: Math.round(365 * 86 * 0.8) }],
   ['self-employment loss lowers total income', { status: 'single', wages: 40000, seIncome: -5000 },
     { totalIncome: 35000 }],
 ];

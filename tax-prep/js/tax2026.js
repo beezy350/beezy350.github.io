@@ -39,7 +39,7 @@
   const SS_WAGE_BASE = 184500;
   // Transportation-industry per diem (IRS Notice 2026-60): $80/day in the U.S.,
   // travel days at 75%, 80% deductible for drivers under DOT hours rules.
-  const PER_DIEM = { rate: 80, partialDay: 0.75, deductible: 0.8 };
+  const PER_DIEM = { rate: 80, canadaRate: 86, partialDay: 0.75, deductible: 0.8 };
   const QBI_RATE = 0.20;
   // QBI threshold (Rev. Proc. 2025-32) and OBBBA phase-in range
   const QBI_THRESHOLD = { single: 201750, hoh: 201750, mfs: 201750, mfj: 403500 };
@@ -88,13 +88,16 @@
     // Truck driver per diem is a business deduction for the self-employed only
     const seIncome = finite(input.seIncome); // a business loss can be negative
     const hasBusiness = seIncome !== 0;
-    // a year has 365 days: full days first, then travel days
+    // a year has 365 days: full days first, then travel days.
+    // perDiemCanada = how many of the full days were in Canada ($86).
     const pdFull = Math.min(num(input.perDiemFull), YEAR_DAYS);
+    const pdCanada = Math.min(num(input.perDiemCanada), pdFull);
     const pdPartial = Math.min(num(input.perDiemPartial), YEAR_DAYS - pdFull);
     const perDiemDeduction = hasBusiness
-      ? (pdFull * PER_DIEM.rate + pdPartial * PER_DIEM.rate * PER_DIEM.partialDay) * PER_DIEM.deductible
+      ? ((pdFull - pdCanada) * PER_DIEM.rate + pdCanada * PER_DIEM.canadaRate +
+         pdPartial * PER_DIEM.rate * PER_DIEM.partialDay) * PER_DIEM.deductible
       : 0;
-    if (!hasBusiness && (num(input.perDiemFull) || num(input.perDiemPartial))) {
+    if (!hasBusiness && (pdFull || pdPartial)) {
       notes.push('Per diem was left out: employee drivers cannot deduct unreimbursed travel meals on their federal return. Ask your employer about a per diem reimbursement plan.');
     }
     const seNet = seIncome - num(input.seExpenses) - perDiemDeduction; // can be a loss

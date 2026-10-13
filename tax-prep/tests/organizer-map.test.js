@@ -29,7 +29,7 @@ eq([ex.seExpenses, ex.wages, ex.tips], [700, 300, 300]);
 
 // Trip: 7 nights with 2 Canada days -> 4 U.S. + 2 Canada full days, 2 travel days
 const t = M.fromPdfFields({ trip1_leave: '2026-03-02', trip1_return: '3/9/2026', trip1_canada: '2', trip2_leave: '2026-04-01', trip2_return: '2026-04-01' }, St.NAMES);
-eq([t.isTrucker, t.perDiemFull, t.perDiemPartial], [1, 4 + 2 * 86 / 80, 2], 'same-day trip ignored');
+eq([t.isTrucker, t.perDiemFull, t.perDiemCanada, t.perDiemPartial], [1, 6, 2, 2], 'same-day trip ignored');
 
 eq([M.money('$-500'), M.money('1e5'), M.money('41,000.00')], [-500, 100000, 41000]);
 eq(M.day('2/30/2026'), null, 'impossible date');
@@ -42,6 +42,8 @@ const yr = M.fromPdfFields({ trip1_leave: '2025-12-30', trip1_return: '2026-01-0
 eq([yr.perDiemFull, yr.perDiemPartial], [2, 1], 'clipped to 2026');
 const big = M.fromPdfFields({ trip1_leave: '2025-01-01', trip1_return: '2027-12-31' }, St.NAMES);
 eq([big.perDiemFull, big.perDiemPartial], [365, 0], 'never more than a year');
+// Excel rows arrive as Date objects
+eq(M.perDiemDays([{ leave: new Date(Date.UTC(2026, 2, 2)), back: new Date(Date.UTC(2026, 2, 9)), canada: 2 }]), { full: 6, canada: 2, travel: 2 });
 
 eq(M.isOrganizer(['status_single', 'exp_fuel_diesel_100']), true);
 eq(M.isOrganizer(['Text1', 'Check2']), false);

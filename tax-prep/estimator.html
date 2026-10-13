@@ -252,7 +252,7 @@
 
         <label class="check"><input type="checkbox" id="isTrucker" name="isTrucker"> I'm a truck driver who stays away from home overnight</label>
         <div class="perdiem-box" id="perdiem-box" hidden>
-          <p class="est-help">Per diem: $80 a day in the U.S. (IRS 2026 rate). The days you leave and come home count at 75%, and drivers under DOT hours rules deduct 80% of the total.</p>
+          <p class="est-help">Per diem: $80 a day in the U.S., $86 in Canada (IRS 2026 rates). The days you leave and come home count at 75%, and drivers under DOT hours rules deduct 80% of the total.</p>
           <div class="field-grid">
             <div class="field">
               <label for="perDiemFull">Full days away from home</label>
@@ -262,6 +262,10 @@
               <label for="perDiemPartial">Departure and return days</label>
               <input type="number" id="perDiemPartial" name="perDiemPartial" min="0" max="366" step="1" inputmode="numeric" placeholder="0">
               <p class="est-help">Usually 2 per trip.</p>
+            </div>
+            <div class="field">
+              <label for="perDiemCanada">Of the full days, how many in Canada</label>
+              <input type="number" id="perDiemCanada" name="perDiemCanada" min="0" max="366" step="1" inputmode="numeric" placeholder="0">
             </div>
           </div>
           <p class="est-help" id="perdiem-preview"></p>

@@ -34,7 +34,7 @@
     // Answers on skipped steps never count
     if (data.hasDeps !== 'yes') { data.childrenUnder17 = 0; data.otherDependents = 0; data.childcare = false; }
     if (data.status !== 'mfj') data.spouse65 = false;
-    if (!data.isTrucker) { data.perDiemFull = 0; data.perDiemPartial = 0; }
+    if (!data.isTrucker) { data.perDiemFull = 0; data.perDiemCanada = 0; data.perDiemPartial = 0; }
     return data;
   }
 
@@ -103,8 +103,9 @@
 
     $('perdiem-box').hidden = !$('isTrucker').checked;
     const full = Math.max(0, Math.floor(Number($('perDiemFull').value) || 0));
+    const canada = Math.min(full, Math.max(0, Math.floor(Number($('perDiemCanada').value) || 0)));
     const part = Math.max(0, Math.floor(Number($('perDiemPartial').value) || 0));
-    const total = full * 80 + part * 60;
+    const total = (full - canada) * 80 + canada * 86 + part * 60;
     $('perdiem-preview').textContent = total
       ? `Per diem ${money(total)}; deductible ${money(total * 0.8)}.${Number($('seIncome').value) > 0 ? '' : ' Enter your business income above for it to count.'}`
       : '';

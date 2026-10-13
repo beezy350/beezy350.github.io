@@ -13,7 +13,7 @@
   const status = document.getElementById('org-status');
   const KEYS = ['status', 'state', 'you65', 'spouse65', 'hasDeps', 'childrenUnder17', 'otherDependents', 'childcare',
     'wages', 'withheld', 'stateWithheld', 'tips', 'overtimePremium', 'seIncome', 'seExpenses', 'estimatedPayments',
-    'stateEstimated', 'isTrucker', 'perDiemFull', 'perDiemPartial', 'interest', 'unemployment', 'otherIncome',
+    'stateEstimated', 'isTrucker', 'perDiemFull', 'perDiemCanada', 'perDiemPartial', 'interest', 'unemployment', 'otherIncome',
     'retirement', 'hasInvestments', 'mortgage', 'studentLoan', 'college', 'marketplace', 'noSsn', 'irsLetter'];
 
   function say(msg, isError) {
@@ -116,6 +116,14 @@
       }
       const values = {};
       for (const k of KEYS) if (k in data) values[k] = data[k] == null ? '' : data[k];
+      // Count trip days from the Trips tab the same way as the PDF (overlaps merged)
+      const trips = sheets.find((s) => String(s.sheet).trim().toLowerCase() === 'trips');
+      if (trips && window.OrganizerMap) {
+        const rows = trips.data.slice(5, 35).map((r) => ({ leave: r[0], back: r[1], canada: r[2] }));
+        const t = window.OrganizerMap.perDiemDays(rows);
+        Object.assign(values, { perDiemFull: t.full, perDiemCanada: t.canada, perDiemPartial: t.travel,
+          isTrucker: t.full + t.travel > 0 ? 1 : 0 });
+      }
       finish(values, file.name);
     } catch (err) {
       say(err.message === 'reader'
