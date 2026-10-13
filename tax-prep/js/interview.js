@@ -222,6 +222,7 @@
       ['Tax withheld', r.withheld],
       r.estimatedPayments && ['Estimated payments', r.estimatedPayments],
       r.refundableChildCredit && ['Refundable child credit', r.refundableChildCredit],
+      r.eitc && ['Earned income credit', r.eitc],
       [refund ? 'Estimated refund' : 'Estimated amount you owe', Math.abs(r.result), 'sum'],
     ].filter(Boolean);
 

@@ -36,6 +36,14 @@
   const ODC_PER_DEPENDENT = 500;
   const CTC_PHASEOUT = { single: 200000, hoh: 200000, mfs: 200000, mfj: 400000 };
 
+  // Earned income tax credit, 2026 (Rev. Proc. 2025-32), by qualifying children 0-3+
+  const EITC = {
+    max: [664, 4427, 7316, 8231],
+    phaseInRate: [0.0765, 0.34, 0.40, 0.45],
+    phaseOutRate: [0.0765, 0.1598, 0.2106, 0.2106],
+    threshold: { mfj: [18140, 31160, 31160, 31160], other: [10860, 23890, 23890, 23890] },
+  };
+
   const SS_WAGE_BASE = 184500;
   // Transportation-industry per diem (IRS Notice 2026-60): $80/day in the U.S.,
   // travel days at 75%, 80% deductible for drivers under DOT hours rules.
@@ -198,14 +206,25 @@
       Math.max(0, earned - 2500) * 0.15
     );
 
+    // Earned income tax credit (refundable). Counted only with qualifying
+    // children; childless workers must be 25-64, which we don't ask.
+    let eitc = 0;
+    const eitcKids = Math.min(3, kids);
+    if (eitcKids > 0 && !mfs && !input.noSsn && earned > 0) {
+      const th = EITC.threshold[married ? 'mfj' : 'other'][eitcKids];
+      const phasedIn = Math.min(EITC.max[eitcKids], earned * EITC.phaseInRate[eitcKids]);
+      eitc = Math.max(0, phasedIn - Math.max(0, Math.max(agi, earned) - th) * EITC.phaseOutRate[eitcKids]);
+    }
+
     const totalTax = incomeTax - nonrefundableUsed + seTax;
-    const payments = withheld + estPayments + actc;
+    const payments = withheld + estPayments + actc + eitc;
     const result = payments - totalTax; // positive = refund
 
     // Flags for things a preparer should check
-    const eitcLimit = kids > 0 ? (married ? 70000 : 63000) : (married ? 27000 : 20000);
-    if (!mfs && earned > 0 && agi < eitcLimit) {
-      notes.push('You may qualify for the Earned Income Tax Credit, which is not included here and could raise your refund.');
+    if (eitc > 0) {
+      notes.push('Includes the Earned Income Tax Credit. It needs valid SSNs for everyone on the return, children who lived with you over half the year, and investment income under the IRS limit; a preparer will confirm.');
+    } else if (kids === 0 && !mfs && earned > 0 && agi < (married ? 26820 : 19540)) {
+      notes.push('If you are 25 to 64, you may qualify for a small Earned Income Tax Credit (up to $664), not included here.');
     }
     if (agi > (married ? 250000 : 200000)) {
       notes.push('High earners may owe an additional 0.9% Medicare tax or 3.8% investment tax, not included here.');
@@ -234,6 +253,7 @@
       incomeTax: round(incomeTax),
       childCredits: round(nonrefundableUsed),
       refundableChildCredit: round(actc),
+      eitc: round(eitc),
       seTax: round(seTax),
       totalTax: round(totalTax),
       withheld: round(withheld),
