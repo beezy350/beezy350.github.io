@@ -111,7 +111,7 @@ const ordered = L.scheduleC([
   { date: '2026-01-01', type: 'income', amount: 1, category: 't_freight' },
   { date: '2026-01-01', type: 'expense', amount: 1, category: 'uncategorized' },
 ], 2026).map((r) => r.line || '-');
-eq(ordered, ['1', '22', '23', '24b', '27a', '-']);
+eq(ordered, ['1', '22', '23', '24b', '27b', '-']);
 
 // Per diem: 20 full + 4 partial days in the US, 3 full + 1 partial in Canada
 const pd = L.perDiem({ fullConus: 20, partialConus: 4, fullOconus: 3, partialOconus: 1 });

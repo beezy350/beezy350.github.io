@@ -34,18 +34,15 @@
   }
   const loadReader = () => loadScript(XLSX_READER, 'readXlsxFile');
 
-  // Itemized expense lines kept for the Preparer summary
-  function keepItems(fileName, items) {
-    window.falconOrganizer = { fileName, items: items || [] };
-  }
-
-  function finish(values, fileName) {
+  // items: itemized expense lines kept for the Preparer summary (only when the upload is used)
+  function finish(values, fileName, items) {
     const income = ['wages', 'seIncome', 'interest', 'unemployment', 'otherIncome'].reduce((a, k) => a + (Number(values[k]) || 0), 0);
     if (!income) {
       say('No income was entered in the organizer yet. Fill in the jobs or income section, save, and upload it again.', true);
       return;
     }
     if (window.FalconEstimator) window.FalconEstimator.load(values);
+    window.falconOrganizer = { fileName, items: items || [] };
     say(`Loaded your answers from ${fileName}. Your estimate is below; you can go back to any step to change an answer.`);
   }
 
@@ -76,10 +73,9 @@
       say("That PDF isn't the Falcon Tax Organizer. Download the organizer below, fill it in, and upload it again.", true);
       return;
     }
-    if (window.PreparerSummary && window.ExpenseCatalog) {
-      keepItems(file.name, window.PreparerSummary.itemsFromFields(map, window.ExpenseCatalog, window.OrganizerMap.money));
-    }
-    finish(window.OrganizerMap.fromPdfFields(map, window.States ? window.States.NAMES : {}), file.name);
+    const items = window.PreparerSummary && window.ExpenseCatalog
+      ? window.PreparerSummary.itemsFromFields(map, window.ExpenseCatalog, window.OrganizerMap.money) : [];
+    finish(window.OrganizerMap.fromPdfFields(map, window.States ? window.States.NAMES : {}), file.name, items);
   }
 
   // Key/value pairs from the Data tab: key in column A, value in column C
@@ -133,9 +129,13 @@
         Object.assign(values, { perDiemFull: t.full, perDiemCanada: t.canada, perDiemPartial: t.travel,
           isTrucker: t.full + t.travel > 0 ? 1 : 0 });
       }
-      const exp = sheets.find((s) => String(s.sheet).trim().toLowerCase() === 'expenses');
-      if (exp && window.PreparerSummary) keepItems(file.name, window.PreparerSummary.itemsFromSheet(exp.data.slice(5)));
-      finish(values, file.name);
+      const tab = (name) => sheets.find((s) => String(s.sheet).trim().toLowerCase() === name);
+      const P = window.PreparerSummary;
+      const items = P ? [
+        ...(tab('expenses') ? P.itemsFromSheet(tab('expenses').data.slice(5)) : []),
+        ...(tab('car') && window.ExpenseCatalog ? P.carItemsFromSheet(tab('car').data, window.ExpenseCatalog) : []),
+      ] : [];
+      finish(values, file.name, items);
     } catch (err) {
       say(err.message === 'reader'
         ? "The file reader couldn't load. Refresh the page and try again."

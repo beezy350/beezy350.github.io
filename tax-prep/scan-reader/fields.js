@@ -800,8 +800,8 @@ window.ORGANIZER_FIELDS = [
 "kind": "text"
 },
 {
-"name": "exp_rent_office_equipment_100",
-"label": "Expense: Rent (office, equipment)",
+"name": "exp_rent_office_or_shop_100",
+"label": "Expense: Rent (office or shop)",
 "page": 3,
 "kind": "text"
 },

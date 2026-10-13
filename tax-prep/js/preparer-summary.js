@@ -13,11 +13,13 @@
     15: 'Insurance (other than health)', '16b': 'Interest (other)', 17: 'Legal and professional services',
     18: 'Office expense', '20a': 'Rent or lease: vehicles, machinery, equipment', '20b': 'Rent or lease: other business property',
     21: 'Repairs and maintenance', 22: 'Supplies', 23: 'Taxes and licenses', '24a': 'Travel', '24b': 'Deductible meals',
-    25: 'Utilities', 26: 'Wages', '27a': 'Other expenses', 30: 'Business use of home (Form 8829)',
+    25: 'Utilities', 26: 'Wages', '27b': 'Other expenses (list in Part V)', 30: 'Business use of home (Form 8829)',
   };
-  const ORDER = ['8', '9', '10', '11', '15', '16b', '17', '18', '20a', '20b', '21', '22', '23', '24a', '24b', '25', '26', '27a'];
+  const ORDER = ['8', '9', '10', '11', '15', '16b', '17', '18', '20a', '20b', '21', '22', '23', '24a', '24b', '25', '26', '27b'];
   const STATUS = { single: 'Single', mfj: 'Married filing jointly', mfs: 'Married filing separately', hoh: 'Head of household' };
-  const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+  // same limits as the tax engine: amounts 0..1e9, business income may be negative
+  const finite = (v) => { const n = Number(v); return Number.isFinite(n) ? Math.max(-1e9, Math.min(1e9, n)) : 0; };
+  const num = (v) => Math.max(0, finite(v));
   const round2 = (v) => Math.round(v * 100) / 100;
 
   // Itemized lines from fillable-PDF / Scan Reader fields (name -> value)
@@ -27,12 +29,26 @@
       const c = catalog.expenses[name];
       const amount = money(v);
       if (c && amount) items.push({ label: c.label, line: c.line, share: c.share, group: c.group, amount });
+      else if (catalog.car[name] && amount) items.push({ label: catalog.car[name], car: name.slice(4), amount });
     }
     return items;
   }
 
   // Itemized lines from the Excel organizer's Expenses tab rows
   // (A label, B Schedule C line, C amount paid, D deductible share)
+  // Car tab rows (A label, B amount) -> car items, matched by label
+  function carItemsFromSheet(rows, catalog) {
+    const byLabel = {};
+    for (const [k, lab] of Object.entries(catalog.car)) byLabel[lab] = k.slice(4);
+    const items = [];
+    for (const r of rows || []) {
+      const key = byLabel[r[0] == null ? '' : String(r[0]).trim()];
+      const amount = num(r[1]);
+      if (key && amount) items.push({ label: String(r[0]).trim(), car: key, amount });
+    }
+    return items;
+  }
+
   function itemsFromSheet(rows) {
     const items = [];
     let group = '';
@@ -48,16 +64,20 @@
   }
 
   function model({ d, r, st, items, source }) {
-    const seIncome = num(d.seIncome);
-    const list = (items || []).filter((i) => i.amount);
+    const seIncome = finite(d.seIncome);
+    const all = (items || []).filter((i) => i.amount);
+    const list = all.filter((i) => !i.car);
+    const carParts = all.filter((i) => i.car);
     const deductible = (i) => i.amount * i.share;
     const itemTotal = round2(list.reduce((a, i) => a + deductible(i), 0));
-    const itemized = list.length > 0 && Math.abs(itemTotal - num(d.seExpenses)) < 1;
+    const itemized = list.length > 0 && Math.abs(itemTotal - num(d.seExpenses)) < 0.005;
 
     // Schedule C lines
     const byLine = {};
     const add = (line, label, amount, note) => {
       if (!amount) return;
+      // older organizers used 27a for other expenses; anything unknown lands there too
+      if (!ORDER.includes(line)) { note = [note, `listed as line ${line}`].filter(Boolean).join('; '); line = '27b'; }
       (byLine[line] = byLine[line] || { line, name: LINES[line] || 'Other', amount: 0, detail: [] });
       byLine[line].amount += amount;
       byLine[line].detail.push({ label, amount: round2(amount), note });
@@ -69,8 +89,19 @@
         add(String(i.line), i.label, deductible(i), i.share && i.share < 1 ? `${Math.round(i.share * 100)}% of ${round2(i.amount)}` : '');
       }
     }
-    if (r.carDeduction) {
-      add('9', r.carMethod === 'actual' ? 'Vehicle: actual costs x business share' : 'Vehicle: standard mileage', r.carDeduction);
+    if (r.carDeduction && r.carMethod === 'actual') {
+      // Line 9 instructions: lease or rental payments go on 20a, interest on 16b
+      const share = r.carShare || 0;
+      const part = (key) => carParts.filter((i) => i.car === key).reduce((a, i) => a + i.amount, 0) * share;
+      const rent = part('rent'), interest = part('interest');
+      add('20a', 'Vehicle lease or rental (business share)', rent);
+      add('16b', 'Car loan interest (business share)', interest);
+      add('9', 'Vehicle: actual costs x business share', r.carDeduction - rent - interest);
+      if (!carParts.length && num(d.carCosts) && byLine['9']) {
+        byLine['9'].detail[byLine['9'].detail.length - 1].note = 'move lease payments to 20a and loan interest to 16b';
+      }
+    } else if (r.carDeduction) {
+      add('9', 'Vehicle: standard mileage', r.carDeduction);
     }
     if (r.perDiemDeduction) add('24b', 'Truck driver per diem (80% under DOT hours rules)', r.perDiemDeduction);
     const lines = ORDER.filter((l) => byLine[l]).map((l) => ({ ...byLine[l], amount: round2(byLine[l].amount) }));
@@ -78,7 +109,7 @@
     const totalExpenses = round2(lines.reduce((a, l) => a + l.amount, 0) + unitemized);
     const netProfit = round2(seIncome - totalExpenses);
 
-    const vehicle = r.carDeduction || num(d.carCosts) || num(d.carMilesH1) || num(d.carMilesH2) ? {
+    const vehicle = r.carDeduction || (seIncome && (num(d.carCosts) || num(d.carMilesH1) || num(d.carMilesH2))) ? {
       milesH1: num(d.carMilesH1), milesH2: num(d.carMilesH2), totalMiles: num(d.carMilesTotal), costs: num(d.carCosts),
       standard: r.carStandard, actual: r.carActual, share: r.carShare, method: r.carMethod, deduction: r.carDeduction,
     } : null;
@@ -86,9 +117,9 @@
     return {
       source: source || 'Refund estimator answers',
       status: STATUS[r.status] || r.status,
-      kids: num(d.childrenUnder17), otherDeps: num(d.otherDependents),
+      kids: Math.floor(num(d.childrenUnder17)), otherDeps: Math.floor(num(d.otherDependents)),
       income: [
-        ['W-2 wages (incl. unreported cash tips)', num(d.wages)], ['Federal tax withheld (W-2 box 2)', num(d.withheld)],
+        ['W-2 wages (incl. unreported cash tips)', num(d.wages)], ['Federal tax withheld', num(d.withheld)],
         ['State tax withheld', num(d.stateWithheld)], ['Tips (for the tips deduction)', num(d.tips)],
         ['Overtime premium', num(d.overtimePremium)], ['Self-employment gross receipts', seIncome],
         ['Interest', num(d.interest)], ['Unemployment', num(d.unemployment)], ['Retirement and other income', num(d.otherIncome)],
@@ -125,10 +156,10 @@
     const q = [];
     const has = (re) => items.some((i) => re.test(i.label));
     const wages = num(d.wages), se = num(d.seIncome);
-    if (num(d.withheld) && !wages) q.push(`Federal withholding of $${num(d.withheld).toLocaleString('en-US')} with no W-2 wages entered. Where did it come from: a spouse's W-2 (wages missing), backup withholding on a 1099, or estimated payments?`);
+    if (num(d.withheld) && !wages) q.push(`Federal withholding of $${num(d.withheld).toLocaleString('en-US')} with no W-2 wages entered. Where did it come from: unemployment (1099-G), a retirement withdrawal (1099-R), a spouse's W-2 (wages missing), backup withholding on a 1099, or estimated payments?`);
     if (num(d.stateWithheld) && !wages) q.push('State withholding with no W-2 wages entered. Confirm the source and any missing W-2.');
     if (se) q.push('Match gross receipts to every 1099-NEC / 1099-K and the app or bank records. 1099-K gross includes platform fees, which go on line 10.');
-    if (r.carDeduction || d.usesCar) {
+    if (r.carDeduction) {
       q.push('Vehicle, Schedule C Part IV: date placed in service, business / commuting / other miles, and whether written mileage records exist.');
       q.push(r.carMethod === 'actual'
         ? 'Actual car costs chosen: confirm standard mileage was not required (owned car first used with standard mileage; leased car must keep its first method).'
@@ -137,9 +168,9 @@
     if (has(/meal/i) && (d.usesCar || r.carDeduction) && !d.isTrucker) q.push('Meals entered for a rideshare/delivery driver. Meals are deductible only when away from home overnight on business; usually remove.');
     if (d.isTrucker) q.push('Per diem: get the ELD or logbook for days away, confirm the driver is under DOT hours-of-service rules (80%), and that meals were not also entered.');
     if (has(/home office/i)) q.push('Home office (Form 8829): home and office square footage, regular and exclusive use, rent or mortgage interest, utilities, insurance.');
-    if (has(/electronics|equipment|software purchase|tools/i)) q.push('Equipment and electronics: any item over $2,500 needs depreciation or the de minimis safe harbor election.');
+    if (has(/electronics|tools & equipment|software purchase/i)) q.push('Equipment and electronics: any item over $2,500 needs depreciation or the de minimis safe harbor election.');
     if (num(d.childrenUnder17) || num(d.otherDependents)) q.push("Each dependent: SSN or ITIN, date of birth, relationship, months lived in the home. Children 17-18 or students under 24 also count for the earned income credit.");
-    if (r.eitc || r.refundableChildCredit || d.status === 'hoh') q.push('Paid-preparer due diligence: complete Form 8867 (EITC / CTC / head of household) and keep the documents you relied on.');
+    if (r.eitc || r.refundableChildCredit || r.childCredits || d.status === 'hoh' || d.college) q.push('Paid-preparer due diligence: complete Form 8867 (EITC, child tax credit / ODC, American opportunity credit, head of household) and keep the documents you relied on.');
     if (d.status === 'hoh') q.push('Head of household: who is the qualifying person, and did the client pay more than half the cost of keeping up the home?');
     if (d.status === 'mfs') q.push("Married filing separately: spouse's name and SSN, and compare with filing jointly.");
     if (num(d.estimatedPayments)) q.push('Estimated payments: confirm dates and amounts against the IRS online account.');
@@ -174,7 +205,7 @@
       }
       if (c.unitemized) row('Expenses entered as a total (not itemized)', c.unitemized);
       row('Line 28 Total expenses', c.totalExpenses);
-      row('Line 31 Net profit', c.netProfit);
+      row(c.homeOffice ? 'Line 29 Tentative profit (before home office)' : 'Line 31 Net profit', c.netProfit);
       if (c.homeOffice) out.push(`Home office costs entered: ${$(c.homeOffice)} total (figure the business part on Form 8829, line 30).`);
       if (c.itemsChanged) out.push('Note: expenses were changed after the organizer was loaded; the itemized list was left out.');
       out.push('');
@@ -230,7 +261,8 @@
       }
       if (c.unitemized) rows.push({ label: 'Expenses entered as a total (not itemized)', line: '', value: c.unitemized });
       rows.push({ label: 'Total expenses', line: '28', value: c.totalExpenses, cls: 'ps-sum' });
-      rows.push({ label: 'Net profit', line: '31', value: c.netProfit, cls: 'ps-sum' });
+      rows.push(c.homeOffice ? { label: 'Tentative profit (before home office)', line: '29', value: c.netProfit, cls: 'ps-sum' }
+        : { label: 'Net profit', line: '31', value: c.netProfit, cls: 'ps-sum' });
       s.append(table(rows, { line: true }));
       if (c.homeOffice) s.append(el('p', 'ps-note', `Home office costs entered: ${$(c.homeOffice)} total. Figure the business part on Form 8829 (line 30).`));
       if (c.itemsChanged) s.append(el('p', 'ps-note', 'Expenses were changed after the organizer was loaded, so the itemized list was left out.'));
@@ -332,13 +364,23 @@ body.ps-printing .ps-bar{display:none}}`;
       setTimeout(done, 1000);
     };
     close.onclick = () => dlg.close();
-    dlg.addEventListener('close', () => dlg.remove());
+    // Ctrl+P / the browser menu print the summary too while it is open
+    const before = () => document.body.classList.add('ps-printing');
+    const after = () => document.body.classList.remove('ps-printing');
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    dlg.addEventListener('close', () => {
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+      after();
+      dlg.remove();
+    });
     dlg.showModal();
     close.focus();
     return dlg;
   }
 
-  const api = { model, toText, render, open, itemsFromFields, itemsFromSheet, LINES };
+  const api = { model, toText, render, open, itemsFromFields, itemsFromSheet, carItemsFromSheet, LINES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PreparerSummary = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -44,4 +44,36 @@ const rows = [['GENERAL BUSINESS', null, null], ['Legal & professional fees', '1
 eq(P.itemsFromSheet(rows).map((i) => [i.line, i.amount, i.share]), [['17', 450, 1], ['24b', 1000, 0.5], ['30', 6000, 0]]);
 const hm = P.model({ d: { status: 'single', seIncome: 20000, seExpenses: 950 }, r: T.estimate({ status: 'single', seIncome: 20000, seExpenses: 950 }), st: null, items: P.itemsFromSheet(rows) });
 eq([hm.scheduleC.homeOffice, hm.scheduleC.totalExpenses], [6000, 950], 'home office listed for Form 8829, not deducted');
+
+// Actual car costs: lease to 20a and interest to 16b (Schedule C line 9 instructions)
+const af = { status_single: true, se1_amount: '60000', car_miles_h1: '5000', car_miles_h2: '5000', car_miles_total: '12500',
+  car_rent: '12000', car_interest: '1000', car_gas: '3000' };
+const ad = M.fromPdfFields(af, S.NAMES);
+const ar = T.estimate(ad);
+const am = P.model({ d: ad, r: ar, st: null, items: P.itemsFromFields(af, C, M.money) });
+const al = (l) => (am.scheduleC.lines.find((x) => x.line === l) || {}).amount;
+eq([ar.carMethod, al('20a'), al('16b'), al('9')], ['actual', 9600, 800, 2400]);
+eq(am.scheduleC.netProfit, ar.totalIncome);
+// Excel Car tab rows give the same split
+eq(P.carItemsFromSheet([['Car rental or lease payments (e.g., rental through Uber)', 12000], ['Car loan interest', 1000], ['Total car costs', 13000]], C)
+  .map((i) => i.car), ['rent', 'interest']);
+
+// Other expenses are line 27b on the current Schedule C; older 27a lines still count
+const o = { status: 'single', seIncome: 1000, seExpenses: 5 };
+const om = P.model({ d: o, r: T.estimate(o), st: null, items: [{ label: '<b>x</b>', line: '27a', share: 1, amount: 5 }] });
+eq(om.scheduleC.lines.map((l) => [l.line, l.amount]), [['27b', 5]]);
+assert.ok(P.toText(om).includes('<b>x</b>'), 'labels kept literally'); n++;
+
+// Questions: no car questions for a W-2 only client; Form 8867 for nonrefundable CTC too
+const w2 = { status: 'single', wages: 150000, childrenUnder17: 2, usesCar: 1, carMilesH1: 5000 };
+const wm = P.model({ d: w2, r: T.estimate(w2), st: null, items: [] });
+eq([wm.vehicle, wm.questions.some((q) => /Part IV/.test(q)), wm.questions.some((q) => /Form 8867/.test(q))], [null, false, true]);
+// Equipment rental does not trigger the depreciation question
+const er = { status: 'single', seIncome: 9000, seExpenses: 500 };
+const em = P.model({ d: er, r: T.estimate(er), st: null, items: [{ label: 'Equipment rental', line: '20a', share: 1, amount: 500 }] });
+eq(em.questions.some((q) => /depreciation/.test(q)), false);
+// Same limits as the engine
+const neg = { status: 'single', seIncome: 50000, seExpenses: -2000 };
+eq(P.model({ d: neg, r: T.estimate(neg), st: null, items: [] }).scheduleC.netProfit, T.estimate(neg).totalIncome);
+
 console.log(`All ${n} checks passed`);

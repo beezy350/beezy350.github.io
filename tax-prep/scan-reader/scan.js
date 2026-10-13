@@ -391,7 +391,9 @@ ${catalog}`;
   $('only-unclear').addEventListener('change', renderReview);
   $('calc').addEventListener('click', calculate);
   $('prep').addEventListener('click', () => {
-    if (!last || !window.PreparerSummary) return;
+    if (!window.PreparerSummary) return;
+    calculate(); // pick up any edits made in the review table since the last Calculate
+    if (!last) return;
     const P = window.PreparerSummary;
     const items = window.ExpenseCatalog ? P.itemsFromFields(read, window.ExpenseCatalog, window.OrganizerMap.money) : [];
     P.open(P.model({ d: last.values, r: last.r, st: last.st, items, source: `Scan Reader (${pages.length} page photo${pages.length === 1 ? '' : 's'})` }));
