@@ -34,6 +34,11 @@
   }
   const loadReader = () => loadScript(XLSX_READER, 'readXlsxFile');
 
+  // Itemized expense lines kept for the Preparer summary
+  function keepItems(fileName, items) {
+    window.falconOrganizer = { fileName, items: items || [] };
+  }
+
   function finish(values, fileName) {
     const income = ['wages', 'seIncome', 'interest', 'unemployment', 'otherIncome'].reduce((a, k) => a + (Number(values[k]) || 0), 0);
     if (!income) {
@@ -70,6 +75,9 @@
     if (!window.OrganizerMap || !window.OrganizerMap.isOrganizer(names)) {
       say("That PDF isn't the Falcon Tax Organizer. Download the organizer below, fill it in, and upload it again.", true);
       return;
+    }
+    if (window.PreparerSummary && window.ExpenseCatalog) {
+      keepItems(file.name, window.PreparerSummary.itemsFromFields(map, window.ExpenseCatalog, window.OrganizerMap.money));
     }
     finish(window.OrganizerMap.fromPdfFields(map, window.States ? window.States.NAMES : {}), file.name);
   }
@@ -125,6 +133,8 @@
         Object.assign(values, { perDiemFull: t.full, perDiemCanada: t.canada, perDiemPartial: t.travel,
           isTrucker: t.full + t.travel > 0 ? 1 : 0 });
       }
+      const exp = sheets.find((s) => String(s.sheet).trim().toLowerCase() === 'expenses');
+      if (exp && window.PreparerSummary) keepItems(file.name, window.PreparerSummary.itemsFromSheet(exp.data.slice(5)));
       finish(values, file.name);
     } catch (err) {
       say(err.message === 'reader'

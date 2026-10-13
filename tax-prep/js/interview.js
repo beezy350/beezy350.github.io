@@ -295,10 +295,20 @@
   nextBtn.addEventListener('click', () => { if (validStep()) next(); });
   backBtn.addEventListener('click', back);
   $('res-edit').addEventListener('click', back);
+  $('res-prep').addEventListener('click', () => {
+    if (!window.PreparerSummary) return;
+    const d = read();
+    const r = window.Tax2026.estimate(d);
+    const st = window.States ? window.States.estimateState(d.state, d, r) : null;
+    const org = window.falconOrganizer;
+    window.PreparerSummary.open(window.PreparerSummary.model({
+      d, r, st, items: org ? org.items : [], source: org ? org.fileName : 'Refund estimator answers' }));
+  });
   $('res-restart').addEventListener('click', () => {
     form.reset();
     try { sessionStorage.removeItem('falconIntake'); } catch (e) { /* ignore */ }
     window.falconPL = null;
+    window.falconOrganizer = null;
     syncQuestions();
     show(0);
   });

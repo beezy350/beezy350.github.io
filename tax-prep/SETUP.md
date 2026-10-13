@@ -57,6 +57,7 @@ domain.
     python3 tax-prep/tools/build_organizer_print.py tax-prep/downloads/falcon-tax-organizer-2026-print.pdf
     python3 tax-prep/tools/build_organizer_print.py --all-types tax-prep/downloads
     python3 tax-prep/tools/build_scan_fields.py
+    python3 tax-prep/tools/build_expense_catalog.py
 
 All three share the EXPENSES and CHECKLIST lists in build_organizer.py; edit
 them there. The print edition is for handwriting (read with the Scan Reader).
@@ -82,3 +83,14 @@ Claude on the owner's plan (artifact `sample` capability with images), shows
 the values read for review, and estimates with the same js/tax2026.js,
 js/states.js and js/organizer-map.js. `fields.js` is generated from the PDF
 organizer's field names; regenerate it whenever the PDF fields change.
+
+## Preparer summary
+
+"Preparer summary" on the estimator results and in the Scan Reader opens a
+one-page report: Schedule C by line (itemized when an organizer was uploaded
+or scanned), the vehicle method (Part IV), per diem, the federal and state
+estimate, and questions to confirm with the client (withholding source,
+Form 8867 due diligence, meals, depreciation, home office). Print / Save as
+PDF or copy it as text. `js/expense-catalog.js` maps organizer fields to
+Schedule C lines; regenerate it after editing EXPENSES or CAR_* lists.
+

@@ -13,6 +13,7 @@
 
   let sample = null;
   let imageLimit = 0;
+  let last = null;           // last estimate, for the Preparer summary
   let pages = [];          // {id, name, blob, url, state, error}
   let read = {};           // field name -> value
   let unclear = new Set();
@@ -332,15 +333,19 @@ ${catalog}`;
       $('combined').hidden = true;
     }
 
+    last = { values, r, st };
     const rows = [
+      r.carDeduction && [`Car (${r.carMethod === 'actual' ? 'actual costs' : 'mileage rate'}), in business income`, r.carDeduction],
+      r.perDiemDeduction && ['Truck per diem (80%), in business income', r.perDiemDeduction],
       ['Total income', r.totalIncome], ['Adjusted gross income', r.agi], ['Standard deduction', -r.standardDeduction],
-      r.perDiemDeduction && ['Truck driver per diem (80%)', -r.perDiemDeduction],
       r.tipsDeduction && ['Tips deduction', -r.tipsDeduction], r.overtimeDeduction && ['Overtime deduction', -r.overtimeDeduction],
       r.seniorDeduction && ['Senior deduction', -r.seniorDeduction], r.qbiDeduction && ['Business income deduction', -r.qbiDeduction],
       ['Taxable income', r.taxableIncome, 'sum'], ['Income tax', r.incomeTax],
       r.childCredits && ['Child and dependent credits', -r.childCredits], r.seTax && ['Self-employment tax', r.seTax],
       ['Total federal tax', r.totalTax, 'sum'], ['Federal tax withheld', r.withheld],
       r.estimatedPayments && ['Estimated payments', r.estimatedPayments], r.refundableChildCredit && ['Refundable child credit', r.refundableChildCredit],
+      r.eitc && ['Earned income credit', r.eitc],
+      [fedRefund ? 'Estimated federal refund' : 'Estimated federal amount due', Math.abs(r.result), 'sum'],
     ].filter(Boolean);
     const t = $('fed-table');
     t.innerHTML = '';
@@ -385,6 +390,12 @@ ${catalog}`;
   $('stop').addEventListener('click', () => ctl && ctl.abort());
   $('only-unclear').addEventListener('change', renderReview);
   $('calc').addEventListener('click', calculate);
+  $('prep').addEventListener('click', () => {
+    if (!last || !window.PreparerSummary) return;
+    const P = window.PreparerSummary;
+    const items = window.ExpenseCatalog ? P.itemsFromFields(read, window.ExpenseCatalog, window.OrganizerMap.money) : [];
+    P.open(P.model({ d: last.values, r: last.r, st: last.st, items, source: `Scan Reader (${pages.length} page photo${pages.length === 1 ? '' : 's'})` }));
+  });
   $('copy').addEventListener('click', async () => {
     try { await navigator.clipboard.writeText($('summary').textContent); $('copy-status').textContent = 'Copied.'; }
     catch (e) {
