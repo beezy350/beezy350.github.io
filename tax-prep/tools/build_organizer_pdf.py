@@ -13,7 +13,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
-from build_organizer import CHECKLIST, EXPENSES  # noqa: E402  same lists as the Excel organizer
+from build_organizer import CAR_COSTS, CAR_MILES, CHECKLIST, EXPENSES, RIDESHARE_GROUP  # noqa: E402  same lists as the Excel organizer
 
 W, H = letter
 NAVY, GOLD, INK, MUTED, LINE = (HexColor(c) for c in ["#1D3557", "#C8963E", "#1B2230", "#5A6475", "#C9D1DC"])
@@ -45,17 +45,19 @@ class Form:
         self.names.add(name)
         return name
 
-    def new_page(self, title, sub):
+    def new_page(self, title, sub, organizer_page=None):
         if self.page:
             self.footer()
             self.c.showPage()
         self.page += 1
+        self.organizer_page = organizer_page or (self.organizer_page + 1 if hasattr(self, "organizer_page") else 1)
         c = self.c
         c.setFillColor(NAVY)
         c.rect(0, H - 64, W, 64, fill=1, stroke=0)
         c.setFillColor(GOLD)
         c.setFont("Helvetica-Bold", 7.5)
-        c.drawString(M, H - 22, f"FALCON TAX SOLUTIONS  ·  2026 TAX ORGANIZER  ·  PAGE {self.page} OF 4")
+        c.drawString(M, H - 22, f"FALCON TAX SOLUTIONS  ·  2026 TAX ORGANIZER  ·  PAGE {self.organizer_page} OF 4"
+                     + ("  ·  CONTINUED" if organizer_page else ""))
         c.setFillColor(white)
         c.setFont("Times-Bold", 19)
         c.drawString(M, H - 44, title)
@@ -184,7 +186,12 @@ def build(path):
 
     # ---------- Page 3: expenses ----------
     y = f.new_page("Business expenses", "Self-employed only. Enter the full amount paid in 2026; we apply the meal limits and depreciation rules.")
-    items = [e for e in EXPENSES]
+    # the rideshare group goes on the car page that follows
+    items, ride, cur = [], [], None
+    for e in EXPENSES:
+        if e[1] is None:
+            cur = ride if e[0] == RIDESHARE_GROUP else items
+        cur.append(e)
     col_w = (W - 2 * M - 16) / 2
     half = (len(items) + 1) // 2
     top = y
@@ -211,6 +218,29 @@ def build(path):
             f.text(x + col_w - 70, yy, 70, 12, name=expense_field(label, share), tip=label or "Other expense", money=True)
             yy -= 13.2
     f.label(M, 36, "Equipment, electronics or software over $2,500 per item may need depreciation; we'll handle that on your return.", 7.5, MUTED)
+
+    # ---------- Page 3 continued: business car, rideshare & delivery ----------
+    y = f.new_page("Business car, rideshare & delivery", "Rideshare, delivery or any business car (not semi-trucks). We use the larger of the IRS mileage rate or your actual costs.", organizer_page=3)
+    y = f.section(y, "Miles driven in 2026 (from your mileage log or the app's yearly tax summary)") - 6
+    for key, lab in CAR_MILES:
+        f.label(M, y + 3, lab, 8.5)
+        f.text(M + 330, y, 110, name=f"car_{key}", tip=lab)
+        y -= 18
+    f.label(M, y + 4, "Mileage rate: 72.5 cents a mile Jan-Jun, 76 cents from Jul 1, 2026. Personal and commuting miles count only in the ALL-miles line.", 7.5, MUTED)
+    y -= 20
+    y = f.section(y, "Car costs paid in 2026 (full amounts; we apply your business share)") - 6
+    for key, lab in CAR_COSTS:
+        f.label(M, y + 3, lab, 8.5)
+        f.text(M + 330, y, 110, name=f"car_{key}", tip=f"Car cost: {lab}", money=True)
+        y -= 18
+    y -= 8
+    y = f.section(y, "Rideshare & delivery costs (count with either car method)") - 6
+    for label, line, share, tip in ride[1:]:
+        f.label(M, y + 3, label, 8.5)
+        f.label(M + 262, y + 3, f"line {line}", 6.5, MUTED)
+        f.text(M + 330, y, 110, name=expense_field(label, share), tip=label, money=True)
+        y -= 18
+    f.label(M, y - 2, "Meals are usually not deductible for rideshare and delivery drivers who come home each night.", 7.5, MUTED)
 
     # ---------- Page 4: trips, payments, sign-off ----------
     y = f.new_page("Truck driver trips & tax payments", "Per diem: $80/day in the U.S., $86 in Canada; travel days at 75%; 80% deductible (IRS Notice 2026-60).")

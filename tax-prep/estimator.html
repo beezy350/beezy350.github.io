@@ -237,7 +237,7 @@
           <div class="field">
             <label for="seExpenses">Business expenses</label>
             <div class="money"><input type="number" id="seExpenses" name="seExpenses" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
-            <p class="est-help">Supplies, phone, business mileage, platform fees.</p>
+            <p class="est-help">Supplies, phone, app and platform fees, tolls and parking. Car costs go below.</p>
           </div>
           <div class="field">
             <label for="estimatedPayments">Estimated tax payments you made</label>
@@ -248,6 +248,32 @@
             <label for="stateEstimated"><span class="state-name">State</span> estimated payments</label>
             <div class="money"><input type="number" id="stateEstimated" name="stateEstimated" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
           </div>
+        </div>
+
+        <label class="check"><input type="checkbox" id="usesCar" name="usesCar"> I drive a car for rideshare, delivery or other business</label>
+        <div class="perdiem-box" id="car-box" hidden>
+          <p class="est-help">We compare the IRS mileage rate (72.5&cent; a mile through June, 76&cent; from July 1, 2026) with your actual car costs times your business share of miles, and use the larger. Rideshare apps show your "online miles" in the yearly tax summary.</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="carMilesH1">Business miles, Jan&ndash;Jun</label>
+              <input type="number" id="carMilesH1" name="carMilesH1" min="0" max="999999" step="any" inputmode="numeric" placeholder="0">
+            </div>
+            <div class="field">
+              <label for="carMilesH2">Business miles, Jul&ndash;Dec</label>
+              <input type="number" id="carMilesH2" name="carMilesH2" min="0" max="999999" step="any" inputmode="numeric" placeholder="0">
+            </div>
+            <div class="field">
+              <label for="carMilesTotal">All miles driven in 2026</label>
+              <input type="number" id="carMilesTotal" name="carMilesTotal" min="0" max="999999" step="any" inputmode="numeric" placeholder="0">
+              <p class="est-help">Personal and commuting miles included.</p>
+            </div>
+            <div class="field">
+              <label for="carCosts">Car costs paid in 2026</label>
+              <div class="money"><input type="number" id="carCosts" name="carCosts" min="0" max="999999999" step="any" inputmode="decimal" placeholder="0"></div>
+              <p class="est-help">Gas, rental or lease, insurance, repairs, car wash, registration, loan interest.</p>
+            </div>
+          </div>
+          <p class="est-help" id="car-preview"></p>
         </div>
 
         <label class="check"><input type="checkbox" id="isTrucker" name="isTrucker"> I'm a truck driver who stays away from home overnight</label>

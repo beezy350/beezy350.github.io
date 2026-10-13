@@ -35,6 +35,7 @@
     if (data.hasDeps !== 'yes') { data.childrenUnder17 = 0; data.otherDependents = 0; data.childcare = false; }
     if (data.status !== 'mfj') data.spouse65 = false;
     if (!data.isTrucker) { data.perDiemFull = 0; data.perDiemCanada = 0; data.perDiemPartial = 0; }
+    if (!data.usesCar) { data.carMilesH1 = 0; data.carMilesH2 = 0; data.carMilesTotal = 0; data.carCosts = 0; }
     return data;
   }
 
@@ -101,6 +102,14 @@
     form.querySelectorAll('.state-tax-only').forEach((el) => { el.hidden = !taxed; });
     form.querySelectorAll('.state-name').forEach((el) => { el.textContent = St && d.state ? St.NAMES[d.state] : 'State'; });
 
+    $('car-box').hidden = !$('usesCar').checked;
+    if ($('usesCar').checked && window.Tax2026) {
+      const c = window.Tax2026.estimate({ status: 'single', seIncome: Number($('seIncome').value) || 1,
+        carMilesH1: $('carMilesH1').value, carMilesH2: $('carMilesH2').value, carMilesTotal: $('carMilesTotal').value, carCosts: $('carCosts').value });
+      $('car-preview').textContent = c.carDeduction
+        ? `Mileage rate ${money(c.carStandard)}${c.carShare != null ? ` · actual costs × ${Math.round(c.carShare * 100)}% business = ${money(c.carActual)}` : ''} → we use ${money(c.carDeduction)}.${Number($('seIncome').value) > 0 ? '' : ' Enter your business income above for it to count.'}`
+        : '';
+    }
     $('perdiem-box').hidden = !$('isTrucker').checked;
     const full = Math.max(0, Math.floor(Number($('perDiemFull').value) || 0));
     const canada = Math.min(full, Math.max(0, Math.floor(Number($('perDiemCanada').value) || 0)));
@@ -118,6 +127,7 @@
     if (n(d.tips)) docs.push('Tip records (pay stubs or tip log)');
     if (n(d.overtimePremium)) docs.push('Final pay stub showing overtime hours');
     if (n(d.seIncome)) docs.push('1099-NEC / 1099-K forms and your business income records', 'Receipts or a list of business expenses', 'Mileage log for business driving');
+    if (d.usesCar) docs.push('Mileage log or the rideshare app’s yearly tax summary (online miles)', 'Odometer readings for Jan 1 and Dec 31', 'Receipts for car costs (gas, rental, insurance, repairs)');
     if (d.isTrucker) docs.push('Logbook or ELD records showing days away from home');
     if (n(d.estimatedPayments)) docs.push('Dates and amounts of estimated tax payments');
     if (n(d.interest)) docs.push('1099-INT from your bank');
@@ -195,6 +205,7 @@
     $('res-sub').textContent = `${STATUS_NAMES[r.status]} · ${r.taxYear} tax year · ${Math.round(r.marginalRate * 100)}% top bracket`;
 
     const rows = [
+      r.carDeduction && [`Car (${r.carMethod === 'actual' ? 'actual costs, business share' : 'IRS mileage rate'}), already taken out of business income`, r.carDeduction, 'info'],
       r.perDiemDeduction && ['Truck per diem (80%), already taken out of business income', r.perDiemDeduction, 'info'],
       ['Total income', r.totalIncome],
       ['Adjusted gross income', r.agi],
@@ -275,7 +286,7 @@
     // Step count changes when the dependents answer changes
     if (e.target.name === 'hasDeps' && current !== resultsStep) show(current, true);
   });
-  form.addEventListener('input', (e) => { if (/perDiem|seIncome/.test(e.target.id)) syncQuestions(); });
+  form.addEventListener('input', (e) => { if (/perDiem|seIncome|car/.test(e.target.id)) syncQuestions(); });
   nextBtn.addEventListener('click', () => { if (validStep()) next(); });
   backBtn.addEventListener('click', back);
   $('res-edit').addEventListener('click', back);

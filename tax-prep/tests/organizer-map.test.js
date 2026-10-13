@@ -45,6 +45,11 @@ eq([big.perDiemFull, big.perDiemPartial], [365, 0], 'never more than a year');
 // Excel rows arrive as Date objects
 eq(M.perDiemDays([{ leave: new Date(Date.UTC(2026, 2, 2)), back: new Date(Date.UTC(2026, 2, 9)), canada: 2 }]), { full: 6, canada: 2, travel: 2 });
 
+// Business car: miles stay separate, every other car_ field is a cost
+const car = M.fromPdfFields({ car_miles_h1: '12,000', car_miles_h2: '8000', car_miles_total: '30000', car_gas: '4000', car_rent: '$7,200', car_wash: '300' }, St.NAMES);
+eq([car.usesCar, car.carMilesH1, car.carMilesH2, car.carMilesTotal, car.carCosts], [1, 12000, 8000, 30000, 11500]);
+eq(M.fromPdfFields({}, St.NAMES).usesCar, 0);
+
 eq(M.isOrganizer(['status_single', 'exp_fuel_diesel_100']), true);
 eq(M.isOrganizer(['Text1', 'Check2']), false);
 console.log(`All ${n} checks passed`);

@@ -7,7 +7,7 @@
   const $ = (id) => document.getElementById(id);
   const FIELDS = window.ORGANIZER_FIELDS || [];
   const BY_NAME = Object.fromEntries(FIELDS.map((f) => [f.name, f]));
-  const MAX_PAGES = 8;
+  const MAX_PAGES = 10;
   const money = (n) => (n < 0 ? '-' : '') + '$' + Math.abs(Math.round(n)).toLocaleString('en-US');
   const STATUS_NAMES = { single: 'Single', mfj: 'Married filing jointly', hoh: 'Head of household', mfs: 'Married filing separately' };
 

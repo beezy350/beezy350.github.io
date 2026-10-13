@@ -13,7 +13,8 @@
   const status = document.getElementById('org-status');
   const KEYS = ['status', 'state', 'you65', 'spouse65', 'hasDeps', 'childrenUnder17', 'otherDependents', 'childcare',
     'wages', 'withheld', 'stateWithheld', 'tips', 'overtimePremium', 'seIncome', 'seExpenses', 'estimatedPayments',
-    'stateEstimated', 'isTrucker', 'perDiemFull', 'perDiemCanada', 'perDiemPartial', 'interest', 'unemployment', 'otherIncome',
+    'stateEstimated', 'isTrucker', 'perDiemFull', 'perDiemCanada', 'perDiemPartial',
+    'usesCar', 'carMilesH1', 'carMilesH2', 'carMilesTotal', 'carCosts', 'interest', 'unemployment', 'otherIncome',
     'retirement', 'hasInvestments', 'mortgage', 'studentLoan', 'college', 'marketplace', 'noSsn', 'irsLetter'];
 
   function say(msg, isError) {

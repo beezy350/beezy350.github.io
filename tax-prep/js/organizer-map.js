@@ -95,6 +95,11 @@
     const trips = perDiemDays(rows('trip', 60).map((i) => ({
       leave: get(`trip${i}_leave`), back: get(`trip${i}_return`), canada: get(`trip${i}_canada`) })));
 
+    // Business car: miles plus actual costs (every car_ field that isn't miles)
+    let carCosts = 0;
+    for (const [k, v] of Object.entries(f)) if (/^car_(?!miles_)/.test(k)) carCosts += money(v);
+    const carMilesH1 = money(get('car_miles_h1')), carMilesH2 = money(get('car_miles_h2'));
+
     const retirement = money(get('income_retirement'));
     const out = {
       status,
@@ -118,6 +123,11 @@
       perDiemFull: trips.full,
       perDiemCanada: trips.canada,
       perDiemPartial: trips.travel,
+      usesCar: carMilesH1 + carMilesH2 + carCosts > 0 ? 1 : 0,
+      carMilesH1,
+      carMilesH2,
+      carMilesTotal: money(get('car_miles_total')),
+      carCosts: Math.round(carCosts * 100) / 100,
       interest: money(get('income_interest')),
       unemployment: money(get('income_unemployment')),
       otherIncome: retirement + money(get('income_other')),

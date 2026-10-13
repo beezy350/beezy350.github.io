@@ -40,6 +40,9 @@
   // Transportation-industry per diem (IRS Notice 2026-60): $80/day in the U.S.,
   // travel days at 75%, 80% deductible for drivers under DOT hours rules.
   const PER_DIEM = { rate: 80, canadaRate: 86, partialDay: 0.75, deductible: 0.8 };
+  // Business standard mileage: 72.5 cents through June 30, 76 cents from
+  // July 1, 2026 (IRS Notice 2026-10, Announcement 2026-11)
+  const MILEAGE = { h1: 0.725, h2: 0.76 };
   const QBI_RATE = 0.20;
   // QBI threshold (Rev. Proc. 2025-32) and OBBBA phase-in range
   const QBI_THRESHOLD = { single: 201750, hoh: 201750, mfs: 201750, mfj: 403500 };
@@ -100,7 +103,29 @@
     if (!hasBusiness && (pdFull || pdPartial)) {
       notes.push('Per diem was left out: employee drivers cannot deduct unreimbursed travel meals on their federal return. Ask your employer about a per diem reimbursement plan.');
     }
-    const seNet = seIncome - num(input.seExpenses) - perDiemDeduction; // can be a loss
+    // Business car: the larger of standard mileage and actual costs x the
+    // business share of all miles. Self-employed only.
+    const milesH1 = num(input.carMilesH1), milesH2 = num(input.carMilesH2);
+    const bizMiles = milesH1 + milesH2;
+    const totalMiles = num(input.carMilesTotal);
+    const carCosts = num(input.carCosts);
+    let carStandard = 0, carActual = 0, carShare = null, carDeduction = 0, carMethod = '';
+    if (hasBusiness && (bizMiles || carCosts)) {
+      carStandard = milesH1 * MILEAGE.h1 + milesH2 * MILEAGE.h2;
+      if (totalMiles > 0) carShare = Math.min(1, bizMiles / totalMiles);
+      else if (!bizMiles) carShare = 1; // costs but no miles at all
+      carActual = carShare == null ? 0 : carCosts * carShare;
+      carMethod = carActual > carStandard ? 'actual' : 'standard';
+      carDeduction = Math.max(carStandard, carActual);
+      if (!bizMiles) notes.push('Car costs were counted in full because no business miles were entered. The IRS requires a mileage log, and only the business share of car costs is deductible.');
+      else if (carCosts && !totalMiles) notes.push('Add the total miles you drove in 2026 so we can compare your actual car costs with the mileage rate. Standard mileage was used for now.');
+      notes.push(carMethod === 'actual'
+        ? 'Car: actual costs gave the larger deduction. If you used standard mileage for this car in an earlier year, a preparer will confirm which method you can use.'
+        : 'Car: the IRS mileage rate gave the larger deduction. Keep your mileage log or app trip history.');
+    } else if (!hasBusiness && (bizMiles || carCosts)) {
+      notes.push('Car costs were left out: they count only against self-employment income.');
+    }
+    const seNet = seIncome - num(input.seExpenses) - perDiemDeduction - carDeduction; // can be a loss
     const interest = num(input.interest);
     const unemployment = num(input.unemployment);
     const otherIncome = num(input.otherIncome);
@@ -200,6 +225,11 @@
       seniorDeduction: round(seniorDeduction),
       qbiDeduction: round(qbi),
       perDiemDeduction: round(perDiemDeduction),
+      carDeduction: round(carDeduction),
+      carMethod,
+      carStandard: round(carStandard),
+      carActual: round(carActual),
+      carShare,
       taxableIncome: round(taxable),
       incomeTax: round(incomeTax),
       childCredits: round(nonrefundableUsed),

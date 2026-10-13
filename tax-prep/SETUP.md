@@ -66,7 +66,11 @@ pre-marked: falcon-2026-single.pdf, -married-joint, -married-separate and
 
 After building the .xlsx, open and save it once in LibreOffice/Excel (or run a
 recalculation) so formula results are stored; the website reads the "Data" tab.
-Update the per diem rates on the Data tab and the tax-year text each year.
+Update the per diem rates (Data C60:C63), the mileage rates (Data C66:C67, also
+`MILEAGE` in js/tax2026.js and `MILEAGE_RATES` in build_organizer.py) and the
+tax-year text each year. The Car tab / car_* fields hold rideshare and other
+business-car miles and costs; the estimate uses the larger of standard mileage
+or actual costs times the business share of miles.
 PDF field names are read by js/organizer-map.js; keep them stable. Scanned or
 handwritten PDFs have no form data and cannot be read automatically.
 

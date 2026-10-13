@@ -764,12 +764,6 @@ window.ORGANIZER_FIELDS = [
 "kind": "text"
 },
 {
-"name": "exp_car_truck_non_trucking_business_vehicle_100",
-"label": "Expense: Car & truck (non-trucking business vehicle)",
-"page": 3,
-"kind": "text"
-},
-{
 "name": "exp_bank_payment_platform_fees_100",
 "label": "Expense: Bank, payment & platform fees",
 "page": 3,
@@ -1168,6 +1162,108 @@ window.ORGANIZER_FIELDS = [
 {
 "name": "exp_other5_100",
 "label": "Expense: Other expense",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_miles_h1",
+"label": "Car: Business miles, Jan 1 - Jun 30, 2026 (a number of miles, not dollars)",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_miles_h2",
+"label": "Car: Business miles, Jul 1 - Dec 31, 2026 (a number of miles, not dollars)",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_miles_total",
+"label": "Car: ALL miles driven in 2026 (odometer Dec 31 minus Jan 1) (a number of miles, not dollars)",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_gas",
+"label": "Car cost: Gas or charging",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_rent",
+"label": "Car cost: Car rental or lease payments (e.g., rental through Uber)",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_insurance",
+"label": "Car cost: Car insurance (including rideshare coverage)",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_repairs",
+"label": "Car cost: Repairs & maintenance (oil, tires, brakes)",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_wash",
+"label": "Car cost: Car wash & detailing",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_registration",
+"label": "Car cost: Registration, plates & inspection",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_interest",
+"label": "Car cost: Car loan interest",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "car_other",
+"label": "Car cost: Other car costs",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "exp_uber_lyft_doordash_service_booking_fees_100",
+"label": "Expense: Uber/Lyft/DoorDash service & booking fees",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "exp_tolls_parking_for_business_trips_100",
+"label": "Expense: Tolls & parking for business trips",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "exp_passenger_supplies_water_snacks_chargers_100",
+"label": "Expense: Passenger supplies (water, snacks, chargers)",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "exp_phone_mount_cables_dash_cam_car_accessor_100",
+"label": "Expense: Phone mount, cables, dash cam & car accessories",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "exp_delivery_bags_gear_100",
+"label": "Expense: Delivery bags & gear",
+"page": 3,
+"kind": "text"
+},
+{
+"name": "exp_airport_city_rideshare_permits_100",
+"label": "Expense: Airport & city rideshare permits",
 "page": 3,
 "kind": "text"
 },

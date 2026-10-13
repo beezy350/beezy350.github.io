@@ -44,7 +44,6 @@ STATES = {
 EXPENSES = [
     ("GENERAL BUSINESS", None, None, None),
     ("Advertising & marketing", "8", 1, None),
-    ("Car & truck (non-trucking business vehicle)", "9", 1, "Business-use share only; keep a mileage log."),
     ("Bank, payment & platform fees", "10", 1, None),
     ("Contract labor (1099 workers)", "11", 1, "Send 1099-NEC to anyone paid $2,000+ in 2026."),
     ("Business insurance", "15", 1, None),
@@ -54,7 +53,7 @@ EXPENSES = [
     ("Rent (office, equipment)", "20b", 1, None),
     ("Taxes & licenses", "23", 1, None),
     ("Travel (overnight trips)", "24a", 1, None),
-    ("Business meals (enter full amount)", "24b", 0.5, "Only 50% is deductible. Truck drivers: use the Trips tab instead."),
+    ("Business meals (enter full amount)", "24b", 0.5, "Only 50% is deductible. Truck drivers: use the Trips tab instead. Rideshare and delivery drivers usually can't deduct meals."),
     ("Phone & internet (business share)", "25", 1, "Business-use percentage only."),
     ("Software & subscriptions", "27a", 1, None),
     ("Materials & supplies used for jobs", "22", 1, "Parts and materials you buy for customers' jobs."),
@@ -67,6 +66,13 @@ EXPENSES = [
     ("Training, courses & licenses for your trade", "27a", 1, None),
     ("Business gifts (up to $25 per person)", "27a", 1, None),
     ("Home office (we calculate the deductible part)", "30", 0, "Enter total rent/utilities for the home; we figure the business share (Form 8829)."),
+    ("RIDESHARE & DELIVERY", None, None, None),
+    ("Uber/Lyft/DoorDash service & booking fees", "10", 1, "From the annual tax summary in the driver app: fees taken out before you were paid."),
+    ("Tolls & parking for business trips", "9", 1, "Deductible with either car method."),
+    ("Passenger supplies (water, snacks, chargers)", "22", 1, None),
+    ("Phone mount, cables, dash cam & car accessories", "22", 1, None),
+    ("Delivery bags & gear", "22", 1, None),
+    ("Airport & city rideshare permits", "23", 1, None),
     ("TRUCKING", None, None, None),
     ("Fuel (diesel)", "9", 1, None),
     ("DEF fluid", "9", 1, None),
@@ -116,6 +122,30 @@ EXPENSES = [
     ("", "27a", 1, None),
     ("", "27a", 1, None),
 ]
+
+RIDESHARE_GROUP = "RIDESHARE & DELIVERY"
+
+# Business car (rideshare, delivery or any business car, not semi-trucks).
+# Miles are split at June 30: the IRS rate was 72.5 cents through June and
+# 76 cents from July 1, 2026 (Notice 2026-10, Announcement 2026-11).
+# The estimate compares standard mileage with actual costs x business share
+# and uses the larger. Field names: car_<key>.
+CAR_MILES = [
+    ("miles_h1", "Business miles, Jan 1 - Jun 30, 2026"),
+    ("miles_h2", "Business miles, Jul 1 - Dec 31, 2026"),
+    ("miles_total", "ALL miles driven in 2026 (odometer Dec 31 minus Jan 1)"),
+]
+CAR_COSTS = [
+    ("gas", "Gas or charging"),
+    ("rent", "Car rental or lease payments (e.g., rental through Uber)"),
+    ("insurance", "Car insurance (including rideshare coverage)"),
+    ("repairs", "Repairs & maintenance (oil, tires, brakes)"),
+    ("wash", "Car wash & detailing"),
+    ("registration", "Registration, plates & inspection"),
+    ("interest", "Car loan interest"),
+    ("other", "Other car costs"),
+]
+MILEAGE_RATES = (0.725, 0.76)  # Jan-Jun, Jul-Dec 2026
 
 CHECKLIST = [
     ("hasInvestments", "Did you sell stocks or crypto, or receive dividends?"),
@@ -213,7 +243,7 @@ def build(sample=False):
     ws.column_dimensions["B"].width = 96
     lines = [
         ("How it works", True),
-        ("1. Fill in the YELLOW cells on each tab, left to right: Household, Jobs, Income, Expenses, Trips, Payments, Checklist.", False),
+        ("1. Fill in the YELLOW cells on each tab, left to right: Household, Jobs, Income, Expenses, Car, Trips, Payments, Checklist.", False),
         ("2. Grey rows show an example of what to enter. Leave them as they are.", False),
         ("3. Skip any tab that doesn't apply to you. Blank cells count as zero.", False),
         ("4. Save the file (Excel: .xlsx; Google Sheets: File > Download > Microsoft Excel).", False),
@@ -226,6 +256,7 @@ def build(sample=False):
         ("Good to know", True),
         ("This is an estimate for the 2026 tax year (returns filed in 2027), not a filed return or a promise of any refund.", False),
         ("Married filing jointly: include both spouses' income. Married filing separately: include only your own.", False),
+        ("Rideshare, delivery or any business car: fill in the Car tab (miles and car costs). We compare the IRS mileage rate with your actual costs and use the larger.", False),
         ("Truck drivers away from home overnight: list each trip on the Trips tab for the per diem deduction ($80/day, IRS Notice 2026-60).", False),
         ("Questions? Book a free consultation on our website.", False),
         ("", False),
@@ -370,6 +401,49 @@ def build(sample=False):
     ex.merge_cells(f"A{r + 2}:F{r + 3}")
     protect(ex, landscape=True)
 
+    # ---------------- Car ----------------
+    car = wb.create_sheet("Car")
+    title(car, "Business car (rideshare, delivery or any business car)", "Not for semi-trucks (use Expenses > Trucking). Keep your mileage log or the app's trip history.")
+    car.column_dimensions["A"].width = 58
+    car.column_dimensions["B"].width = 18
+    car.column_dimensions["C"].width = 60
+    header(car, 4, ["Miles", "Miles", "Notes"])
+    for i, (key, lab) in enumerate(CAR_MILES):
+        rr = 5 + i
+        car.cell(row=rr, column=1, value=lab).font = font()
+        inp(car.cell(row=rr, column=2), "#,##0")
+    note(car, "C5", "Business miles: driving with the app on or for business (rideshare apps show 'online miles').")
+    note(car, "C7", "Needed for the actual-cost method. Commuting and personal miles count here, not above.")
+    header(car, 9, ["Car costs paid in 2026 (full amounts)", "Amount paid", "Notes"])
+    first_cost = 10
+    for i, (key, lab) in enumerate(CAR_COSTS):
+        rr = first_cost + i
+        car.cell(row=rr, column=1, value=lab).font = font()
+        inp(car.cell(row=rr, column=2), MONEY)
+    last_cost = first_cost + len(CAR_COSTS) - 1
+    tc = last_cost + 1
+    total(car, tc, "Total car costs", {2: f"=SUM(B{first_cost}:B{last_cost})"})
+    r0 = tc + 2
+    calc = [
+        ("Standard mileage (72.5 cents Jan-Jun, 76 cents Jul-Dec)", f"=B5*Data!$C$66+B6*Data!$C$67", MONEY),
+        ("Business share of all miles", '=IF(B7>0,MIN(1,(B5+B6)/B7),"")', "0%"),
+        ("Actual costs x business share", f'=IF(B7>0,B{tc}*B{r0 + 1},"")', MONEY),
+        ("We use the larger deduction", f'=MAX(B{r0},N(B{r0 + 2}))', MONEY),
+    ]
+    for i, (lab, f, fmt) in enumerate(calc):
+        rr = r0 + i
+        car.cell(row=rr, column=1, value=lab).font = font(bold=i == 3)
+        c = car.cell(row=rr, column=2, value=f)
+        c.number_format = fmt
+        c.fill = TOTAL_FILL
+        c.border = BOX
+        c.font = font(bold=i == 3)
+    note(car, f"A{r0 + 5}", "Tolls, parking, app fees and passenger supplies go on the Expenses tab (Rideshare & delivery); they count with either method. "
+                            "If you used actual costs for this car in an earlier year, or a leased car started on one method, we'll confirm which method you must keep.")
+    car.merge_cells(f"A{r0 + 5}:C{r0 + 7}")
+    protect(car)
+    car_rows = {"h1": "Car!B5", "h2": "Car!B6", "total": "Car!B7", "costs": f"Car!B{tc}"}
+
     # ---------------- Trips ----------------
     tp = wb.create_sheet("Trips")
     title(tp, "Truck driver trips (per diem)", "Self-employed drivers away from home overnight. One row per trip.")
@@ -385,7 +459,7 @@ def build(sample=False):
         # only 2026 days count
         tp.cell(row=rr, column=4, value=f'=IF({ok},MAX(0,MIN(B{rr}-1,DATE(2026,12,31))-MAX(A{rr}+1,DATE(2026,1,1))+1),0)').number_format = "0"
         tp.cell(row=rr, column=5, value=f'=IF({ok},{in_year(f"A{rr}")}*1+{in_year(f"B{rr}")}*1,0)').number_format = "0"
-        f = tp.cell(row=rr, column=6, value=f"=(D{rr}-MIN(C{rr},D{rr}))*Data!$C$40+MIN(C{rr},D{rr})*Data!$C$41+E{rr}*Data!$C$40*Data!$C$42")
+        f = tp.cell(row=rr, column=6, value=f"=(D{rr}-MIN(C{rr},D{rr}))*Data!$C$60+MIN(C{rr},D{rr})*Data!$C$61+E{rr}*Data!$C$60*Data!$C$62")
         f.number_format = MONEY
         # warn when two trips share days (the website counts each day once)
         tp.cell(row=rr, column=7, value=f'=IF(AND({ok},SUMPRODUCT(ISNUMBER($A$6:$A$35)*ISNUMBER($B$6:$B$35)*($A$6:$A$35<B{rr})*($B$6:$B$35>A{rr}))>1),"Overlaps another trip","")').font = font(color="A3472B", bold=True)
@@ -398,7 +472,7 @@ def build(sample=False):
         c.border = BOX
         c.number_format = MONEY if col == 6 else "0"
     tp.cell(row=37, column=5, value="Deductible (80%)").font = font(bold=True)
-    c = tp.cell(row=37, column=6, value="=F36*Data!$C$43")
+    c = tp.cell(row=37, column=6, value="=F36*Data!$C$63")
     c.number_format = MONEY
     c.font = font(bold=True)
     c.fill = TOTAL_FILL
@@ -479,6 +553,11 @@ def build(sample=False):
         ("perDiemFull", "Full days away (U.S. and Canada)", "=MIN(365,Trips!D36)"),
         ("perDiemCanada", "Of those, full days in Canada", "=MIN(C23,SUMPRODUCT((Trips!C6:C35<Trips!D6:D35)*Trips!C6:C35+(Trips!C6:C35>=Trips!D6:D35)*Trips!D6:D35))"),
         ("perDiemPartial", "Travel days (75%)", "=Trips!E36"),
+        ("usesCar", "Uses a car for business (Car tab)", f'=IF(N({car_rows["h1"]})+N({car_rows["h2"]})+N({car_rows["costs"]})>0,1,0)'),
+        ("carMilesH1", "Business miles Jan-Jun", f'=N({car_rows["h1"]})'),
+        ("carMilesH2", "Business miles Jul-Dec", f'=N({car_rows["h2"]})'),
+        ("carMilesTotal", "All miles driven in 2026", f'=N({car_rows["total"]})'),
+        ("carCosts", "Actual car costs (before business share)", f'=N({car_rows["costs"]})'),
         ("interest", "Bank interest", "=Income!C25"),
         ("unemployment", "Unemployment", "=Income!C26"),
         ("otherIncome", "Retirement withdrawals and other income", "=Income!C27+Income!C28"),
@@ -492,16 +571,23 @@ def build(sample=False):
         dt.cell(row=rr, column=2, value=meaning).font = font(color="5A6475")
         dt.cell(row=rr, column=3, value=f).font = font()
     # per diem rates referenced by the Trips tab (fixed rows)
-    assert 4 + len(keys) < 39, "Data keys overlap the per diem rate rows"
-    dt["A39"] = "Per diem rates (IRS Notice 2026-60)"
-    dt["A39"].font = font(bold=True, color=NAVY)
-    for rr, lab, val, fmt in [(40, "U.S. daily rate", 80, MONEY), (41, "Canada daily rate", 86, MONEY),
-                              (42, "Travel day share", 0.75, "0%"), (43, "Deductible share (DOT hours)", 0.8, "0%")]:
+    assert 4 + len(keys) < 59, "Data keys overlap the rate rows"
+    dt["A59"] = "Per diem rates (IRS Notice 2026-60)"
+    dt["A59"].font = font(bold=True, color=NAVY)
+    dt["A65"] = "Standard mileage rates 2026 (Notice 2026-10, Announcement 2026-11)"
+    dt["A65"].font = font(bold=True, color=NAVY)
+    for rr, lab, val in [(66, "Jan 1 - Jun 30, per mile", MILEAGE_RATES[0]), (67, "Jul 1 - Dec 31, per mile", MILEAGE_RATES[1])]:
+        dt.cell(row=rr, column=2, value=lab).font = font()
+        c = dt.cell(row=rr, column=3, value=val)
+        c.number_format = '$0.000'
+        c.font = font(color="0000FF")
+    for rr, lab, val, fmt in [(60, "U.S. daily rate", 80, MONEY), (61, "Canada daily rate", 86, MONEY),
+                              (62, "Travel day share", 0.75, "0%"), (63, "Deductible share (DOT hours)", 0.8, "0%")]:
         dt.cell(row=rr, column=2, value=lab).font = font()
         c = dt.cell(row=rr, column=3, value=val)
         c.number_format = fmt
         c.font = font(color="0000FF")
-    dt["C40"].comment = Comment("Source: IRS Notice 2026-60, special M&IE rate for the transportation industry, Oct 1, 2026 - Sep 30, 2027 (same as prior year).", "Falcon Tax")
+    dt["C60"].comment = Comment("Source: IRS Notice 2026-60, special M&IE rate for the transportation industry, Oct 1, 2026 - Sep 30, 2027 (same as prior year).", "Falcon Tax")
     protect(dt, landscape=True)
 
     if sample:

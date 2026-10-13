@@ -18,13 +18,13 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
-from build_organizer import CHECKLIST, EXPENSES  # noqa: E402
+from build_organizer import CAR_COSTS, CAR_MILES, CHECKLIST, EXPENSES, RIDESHARE_GROUP  # noqa: E402
 
 W, H = letter
 NAVY, GOLD, INK, MUTED, BOX = (HexColor(c) for c in ["#1D3557", "#C8963E", "#1B2230", "#5A6475", "#7F8A9A"])
 SOFT = HexColor("#F4F5F7")
 M = 34
-SHEETS = 7  # cover + pages 1, 2, 3 (three sheets), 4
+SHEETS = 8  # cover + pages 1, 2, 3 (four sheets), 4
 
 # Filing-type editions: key -> (file name, short label, full name, colour, who qualifies)
 TYPES = {
@@ -189,7 +189,7 @@ def guide_for_type(s, y):
         "hoh": ["Page 1 · State, birth year, checklist, and Dependents (REQUIRED: your qualifying person)",
                 "Page 2 · Your W-2 jobs, self-employment, cash and other income"],
     }[s.kind_key]
-    todo += ["Page 3 · Business expenses, only if you are self-employed (3 sheets)",
+    todo += ["Page 3 · Business expenses, car, rideshare & delivery: only if you are self-employed (4 sheets)",
              "Page 4 · Truck-driver trips (self-employed drivers) and estimated tax payments you made"]
     for line in todo:
         s.check(M, y - 3)
@@ -272,6 +272,24 @@ def contact(s):
     c.drawText(t)
 
 
+def car_block(s, y, row_h):
+    """Miles and car costs; the estimate compares mileage rate vs actual costs."""
+    y = s.section(y, "Miles driven in 2026 (mileage log or the app's yearly tax summary)") - 8
+    for _key, lab in CAR_MILES:
+        s.text(M, y + 7, lab, 9.2)
+        s.box(W - M - 170, y, 170, row_h - 4)
+        s.text(W - M - 34, y + 6, "miles", 7.5, MUTED)
+        y -= row_h
+    s.text(M, y + 6, "Mileage rate: 72.5 cents a mile Jan-Jun, 76 cents from Jul 1, 2026. Personal and commuting miles go only in the ALL-miles line.", 7.8, MUTED)
+    y -= 18
+    y = s.section(y, "Car costs paid in 2026 (full amounts; we apply your business share)") - 8
+    for _key, lab in CAR_COSTS:
+        s.text(M, y + 7, lab, 9.2)
+        s.box(W - M - 170, y, 170, row_h - 4, dollar=True)
+        y -= row_h
+    return y - 8
+
+
 def pages(s, k):
     # ---------- Page 1 ----------
     sub1 = {None: "Check one filing status. Married filing jointly: include your spouse.",
@@ -349,13 +367,19 @@ def pages(s, k):
             groups.append(current)
         else:
             current[1].append((label, line, share))
-    sheets = [groups[:1], groups[1:2], groups[2:]]  # general | trucking | repairs + other
-    titles = ["Business expenses: general", "Business expenses: trucking", "Business expenses: repairs & other"]
+    assert [g[0] for g in groups[:3]] == ["GENERAL BUSINESS", RIDESHARE_GROUP, "TRUCKING"], [g[0] for g in groups]
+    sheets = [groups[:1], groups[1:2], groups[2:3], groups[3:]]  # general | car + rideshare | trucking | repairs + other
+    titles = ["Business expenses: general", "Business car, rideshare & delivery", "Business expenses: trucking", "Business expenses: repairs & other"]
     for i, (chunk, title) in enumerate(zip(sheets, titles)):
-        y = s.page(3, title, "Self-employed only. Enter the full amount paid in 2026; we apply meal limits and depreciation.", cont=i > 0)
+        sub = ("Rideshare, delivery or any business car (not semi-trucks). We use the larger of the IRS mileage rate or your actual costs."
+               if i == 1 else "Self-employed only. Enter the full amount paid in 2026; we apply meal limits and depreciation.")
+        y = s.page(3, title, sub, cont=i > 0)
         row_h = 22
+        if i == 1:
+            y = car_block(s, y, row_h)
         for name, items in chunk:
-            y = s.section(y, name.title()) - 8
+            heading = "Rideshare & delivery costs (count with either car method)" if name == RIDESHARE_GROUP else name.title()
+            y = s.section(y, heading) - 8
             for label, line, share in items:
                 text = label or "Other (describe): ______________________________"
                 if share == 0.5:
@@ -365,6 +389,8 @@ def pages(s, k):
                 s.box(W - M - 170, y, 170, row_h - 4, dollar=True)
                 y -= row_h
             y -= 8
+        if i == 1:
+            s.text(M, y, "Meals are usually not deductible for rideshare and delivery drivers who come home each night.", 8, MUTED)
         if i == 0:
             s.text(M, y, "Equipment, electronics or software over $2,500 per item may need depreciation; we'll handle that on your return.", 8, MUTED)
 

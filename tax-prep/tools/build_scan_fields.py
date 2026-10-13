@@ -4,6 +4,7 @@ Run after rebuilding downloads/falcon-tax-organizer-2026.pdf:
     python3 tax-prep/tools/build_scan_fields.py
 """
 import json
+import re
 from pypdf import PdfReader
 
 SRC = "tax-prep/downloads/falcon-tax-organizer-2026.pdf"
@@ -14,7 +15,9 @@ FIX = {"status_single": "Filing status: Single", "status_mfj": "Filing status: M
        "childcare": "Paid childcare so I could work"}
 
 fields = []
-for page_no, page in enumerate(PdfReader(SRC).pages, 1):
+for page in PdfReader(SRC).pages:
+    # organizer page from the header ("PAGE 3 OF 4"); continued sheets share a number
+    page_no = int(re.search(r"PAGE (\d) OF 4", page.extract_text()).group(1))
     for a in page.get("/Annots", []):
         o = a.get_object()
         name = o.get("/T")
@@ -23,6 +26,8 @@ for page_no, page in enumerate(PdfReader(SRC).pages, 1):
         label = FIX.get(name, str(o.get("/TU", "")))
         if name.startswith("exp_"):
             label = "Expense: " + (label or "Other")
+        if name.startswith("car_miles_"):
+            label = "Car: " + label + " (a number of miles, not dollars)"
         if name.startswith("chk_"):
             label = "Checklist: " + label
         fields.append({"name": str(name), "label": label, "page": page_no,
