@@ -102,4 +102,5 @@ checklist and red flags, a worked example (made-up numbers), what to do when an
 IRS letter arrives, and the client document request list. Rebuild with:
 
     python3 tax-prep/tools/build_audit_plan.py tax-prep/internal/falcon-pre-return-audit-plan.pdf
+    python3 tax-prep/tools/build_audit_plan_phone.py tax-prep/internal/falcon-audit-plan-phone.pdf   (3-page phone edition)
 
