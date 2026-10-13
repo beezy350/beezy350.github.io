@@ -42,6 +42,7 @@
     phaseInRate: [0.0765, 0.34, 0.40, 0.45],
     phaseOutRate: [0.0765, 0.1598, 0.2106, 0.2106],
     threshold: { mfj: [18140, 31160, 31160, 31160], other: [10860, 23890, 23890, 23890] },
+    investmentLimit: 12200, // no credit if investment income is over this
   };
 
   const SS_WAGE_BASE = 184500;
@@ -120,16 +121,19 @@
     let carStandard = 0, carActual = 0, carShare = null, carDeduction = 0, carMethod = '';
     if (hasBusiness && (bizMiles || carCosts)) {
       carStandard = milesH1 * MILEAGE.h1 + milesH2 * MILEAGE.h2;
-      if (totalMiles > 0) carShare = Math.min(1, bizMiles / totalMiles);
-      else if (!bizMiles) carShare = 1; // costs but no miles at all
+      // Without business miles nothing counts: the IRS needs a mileage log
+      if (bizMiles && totalMiles > 0) carShare = Math.min(1, bizMiles / totalMiles);
       carActual = carShare == null ? 0 : carCosts * carShare;
       carMethod = carActual > carStandard ? 'actual' : 'standard';
       carDeduction = Math.max(carStandard, carActual);
-      if (!bizMiles) notes.push('Car costs were counted in full because no business miles were entered. The IRS requires a mileage log, and only the business share of car costs is deductible.');
+      if (!bizMiles) notes.push('Car costs were left out because no business miles were entered. Add your business miles (from a mileage log or the app\'s yearly tax summary); only the business share of car costs is deductible.');
       else if (carCosts && !totalMiles) notes.push('Add the total miles you drove in 2026 so we can compare your actual car costs with the mileage rate. Standard mileage was used for now.');
-      notes.push(carMethod === 'actual'
-        ? 'Car: actual costs gave the larger deduction. If you used standard mileage for this car in an earlier year, a preparer will confirm which method you can use.'
-        : 'Car: the IRS mileage rate gave the larger deduction. Keep your mileage log or app trip history.');
+      if (totalMiles > 0 && bizMiles > totalMiles) notes.push('Business miles are more than all the miles you drove. Check both numbers; business use was capped at 100%.');
+      if (carDeduction > 0) {
+        notes.push(carMethod === 'actual'
+          ? 'Car: actual costs gave the larger deduction. If you used standard mileage for this car in an earlier year, a preparer will confirm which method you can use.'
+          : 'Car: the IRS mileage rate gave the larger deduction. Keep your mileage log or app trip history.');
+      }
     } else if (!hasBusiness && (bizMiles || carCosts)) {
       notes.push('Car costs were left out: they count only against self-employment income.');
     }
@@ -197,7 +201,8 @@
     const unused = ctcAllowed - nonrefundableUsed;
 
     // Refundable additional child tax credit
-    const earned = wages + Math.max(0, seNet - halfSeTax);
+    // a self-employment loss reduces earned income (IRS Pub. 596)
+    const earned = Math.max(0, wages + seNet - halfSeTax);
     const kidsShare = Math.min(ctcAllowed, kids * CTC_PER_CHILD);
     const actc = Math.min(
       unused,
@@ -210,7 +215,8 @@
     // children; childless workers must be 25-64, which we don't ask.
     let eitc = 0;
     const eitcKids = Math.min(3, kids);
-    if (eitcKids > 0 && !mfs && !input.noSsn && earned > 0) {
+    const eitcInvestOk = interest <= EITC.investmentLimit;
+    if (eitcKids > 0 && !mfs && !input.noSsn && earned > 0 && eitcInvestOk) {
       const th = EITC.threshold[married ? 'mfj' : 'other'][eitcKids];
       const phasedIn = Math.min(EITC.max[eitcKids], earned * EITC.phaseInRate[eitcKids]);
       eitc = Math.max(0, phasedIn - Math.max(0, Math.max(agi, earned) - th) * EITC.phaseOutRate[eitcKids]);
@@ -222,7 +228,10 @@
 
     // Flags for things a preparer should check
     if (eitc > 0) {
-      notes.push('Includes the Earned Income Tax Credit. It needs valid SSNs for everyone on the return, children who lived with you over half the year, and investment income under the IRS limit; a preparer will confirm.');
+      notes.push('Includes the Earned Income Tax Credit. It needs valid SSNs for everyone on the return, children who lived with you over half the year, and investment income of $12,200 or less; a preparer will confirm. Children aged 17-18, or students under 24, also count for this credit.');
+      if (input.hasInvestments) notes.push('Dividends, capital gains and rental income count toward the $12,200 investment limit for the Earned Income Tax Credit. Over the limit, the credit is lost.');
+    } else if (eitcKids > 0 && !eitcInvestOk) {
+      notes.push('No Earned Income Tax Credit: investment income is over the $12,200 limit.');
     } else if (kids === 0 && !mfs && earned > 0 && agi < (married ? 26820 : 19540)) {
       notes.push('If you are 25 to 64, you may qualify for a small Earned Income Tax Credit (up to $664), not included here.');
     }

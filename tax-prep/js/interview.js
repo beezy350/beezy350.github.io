@@ -106,7 +106,10 @@
     if ($('usesCar').checked && window.Tax2026) {
       const c = window.Tax2026.estimate({ status: 'single', seIncome: Number($('seIncome').value) || 1,
         carMilesH1: $('carMilesH1').value, carMilesH2: $('carMilesH2').value, carMilesTotal: $('carMilesTotal').value, carCosts: $('carCosts').value });
-      $('car-preview').textContent = c.carDeduction
+      const hasCarInput = Number($('carCosts').value) > 0 || Number($('carMilesTotal').value) > 0;
+      $('car-preview').textContent = !c.carDeduction && hasCarInput
+        ? 'Add your business miles. Car costs count only with a mileage record.'
+        : c.carDeduction
         ? `Mileage rate ${money(c.carStandard)}${c.carShare != null ? ` · actual costs × ${Math.round(c.carShare * 100)}% business = ${money(c.carActual)}` : ''} → we use ${money(c.carDeduction)}.${Number($('seIncome').value) > 0 ? '' : ' Enter your business income above for it to count.'}`
         : '';
     }
@@ -126,8 +129,9 @@
     if (n(d.wages)) docs.push('W-2 from every job' + (d.status === 'mfj' ? ' (both spouses)' : ''));
     if (n(d.tips)) docs.push('Tip records (pay stubs or tip log)');
     if (n(d.overtimePremium)) docs.push('Final pay stub showing overtime hours');
-    if (n(d.seIncome)) docs.push('1099-NEC / 1099-K forms and your business income records', 'Receipts or a list of business expenses', 'Mileage log for business driving');
-    if (d.usesCar) docs.push('Mileage log or the rideshare app’s yearly tax summary (online miles)', 'Odometer readings for Jan 1 and Dec 31', 'Receipts for car costs (gas, rental, insurance, repairs)');
+    if (n(d.seIncome)) docs.push('1099-NEC / 1099-K forms and your business income records', 'Receipts or a list of business expenses');
+    if (n(d.seIncome) && !d.usesCar) docs.push('Mileage log for business driving');
+    if (n(d.seIncome) && d.usesCar) docs.push('Mileage log or the rideshare app’s yearly tax summary (online miles)', 'Odometer readings for Jan 1 and Dec 31', 'Receipts for car costs (gas, rental, insurance, repairs)');
     if (d.isTrucker) docs.push('Logbook or ELD records showing days away from home');
     if (n(d.estimatedPayments)) docs.push('Dates and amounts of estimated tax payments');
     if (n(d.interest)) docs.push('1099-INT from your bank');

@@ -43,6 +43,14 @@ const cases = [
     { carDeduction: 760, carMethod: 'standard' }],
   ['car ignored without self-employment income', { status: 'single', wages: 50000, carMilesH1: 10000 },
     { carDeduction: 0, taxableIncome: 33900 }],
+  ['EITC: a self-employment loss reduces earned income (Pub. 596)', { status: 'hoh', wages: 20000, seIncome: 5000, seExpenses: 20000, childrenUnder17: 2 },
+    { eitc: 2000 }],
+  ['EITC: none with investment income over $12,200', { status: 'hoh', wages: 15000, interest: 20000, childrenUnder17: 2 },
+    { eitc: 0 }],
+  ['car: costs without business miles are left out', { status: 'single', seIncome: 50000, carCosts: 5000, carMilesTotal: 10000 },
+    { carDeduction: 0 }],
+  ['car: costs and no miles at all are left out', { status: 'single', seIncome: 50000, carCosts: 8000 },
+    { carDeduction: 0 }],
   ['self-employment loss lowers total income', { status: 'single', wages: 40000, seIncome: -5000 },
     { totalIncome: 35000 }],
 ];
@@ -64,5 +72,9 @@ const q = (se) => estimate({ status: 'single', seIncome: se });
 assert.ok(q(236000).qbiDeduction > 0, 'QBI still partly allowed inside the phase-in');
 assert.ok(q(236000).totalTax - q(230000).totalTax < 3000, 'no tax cliff at the QBI threshold');
 assert.strictEqual(q(400000).qbiDeduction, 0, 'QBI gone above threshold + phase-in');
+const over = estimate({ status: 'single', seIncome: 50000, carMilesH1: 8000, carMilesH2: 8000, carMilesTotal: 10000, carCosts: 8000 });
+assert.ok(over.notes.some((n) => /more than all the miles/.test(n)), 'warns when business miles exceed all miles');
+const noBiz = estimate({ status: 'single', seIncome: 50000, carCosts: 5000, carMilesTotal: 10000 });
+assert.ok(!noBiz.notes.some((n) => /larger deduction/.test(n)), 'no method note when nothing is deducted');
 console.log(failed ? `${failed} check(s) failed` : `All ${cases.length} cases passed`);
 process.exit(failed ? 1 : 0);

@@ -426,8 +426,8 @@ def build(sample=False):
     r0 = tc + 2
     calc = [
         ("Standard mileage (72.5 cents Jan-Jun, 76 cents Jul-Dec)", f"=B5*Data!$C$66+B6*Data!$C$67", MONEY),
-        ("Business share of all miles", '=IF(B7>0,MIN(1,(B5+B6)/B7),"")', "0%"),
-        ("Actual costs x business share", f'=IF(B7>0,B{tc}*B{r0 + 1},"")', MONEY),
+        ("Business share of all miles", '=IF(AND(B7>0,B5+B6>0),MIN(1,(B5+B6)/B7),"")', "0%"),
+        ("Actual costs x business share", f'=IF(N(B{r0 + 1})>0,B{tc}*B{r0 + 1},"")', MONEY),
         ("We use the larger deduction", f'=MAX(B{r0},N(B{r0 + 2}))', MONEY),
     ]
     for i, (lab, f, fmt) in enumerate(calc):
