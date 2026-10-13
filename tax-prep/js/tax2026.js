@@ -66,6 +66,7 @@
   // QBI threshold (Rev. Proc. 2025-32) and OBBBA phase-in range
   const QBI_THRESHOLD = { single: 201750, hoh: 201750, mfs: 201750, mfj: 403500 };
   const QBI_PHASE_IN = { single: 75000, hoh: 75000, mfs: 75000, mfj: 150000 };
+  const ADDL_MEDICARE = { single: 200000, hoh: 200000, mfs: 125000, mfj: 250000 }; // not indexed
   const MAX_AMOUNT = 1e9;
   const YEAR_DAYS = 365;
 
@@ -197,7 +198,11 @@
     let seTax = 0;
     if (seTotal * 0.9235 >= 400) {
       const base = seTotal * 0.9235;
-      const ssRoom = Math.max(0, SS_WAGE_BASE - wages);
+      // Only the business owner's own W-2 wages use up their Social Security wage base.
+      // Joint returns: household wages are assumed to be the other spouse's unless seOwnerWages is given.
+      const ownerGiven = input.seOwnerWages != null && input.seOwnerWages !== '';
+      const ownerWages = ownerGiven ? num(input.seOwnerWages) : married ? 0 : wages;
+      const ssRoom = Math.max(0, SS_WAGE_BASE - ownerWages);
       seTax = Math.min(base, ssRoom) * 0.124 + base * 0.029;
     }
     const halfSeTax = seTax / 2;
@@ -266,8 +271,12 @@
       // Above the threshold the deduction phases down to zero over the
       // phase-in range (sole proprietor with no W-2 payroll or property).
       const over = Math.max(0, beforeQbi - QBI_THRESHOLD[status]);
-      const keep = Math.max(0, 1 - over / QBI_PHASE_IN[status]);
-      qbi = Math.min(qbiBase * QBI_RATE * keep, beforeQbi * QBI_RATE);
+      // Above the range the deduction is limited to 50% of the business's W-2 wages
+      // (qbiW2Wages, e.g. an S-corp owner's salary); inside the range it phases toward that limit.
+      const tentative = qbiBase * QBI_RATE;
+      const wageLimit = Math.min(tentative, 0.5 * num(input.qbiW2Wages));
+      const share = Math.min(1, over / QBI_PHASE_IN[status]);
+      qbi = Math.min(tentative - (tentative - wageLimit) * share, beforeQbi * QBI_RATE);
       if (over > 0) {
         notes.push('Your income is above the limit for the full 20% business income deduction, so it is reduced here. Paying wages or owning business property can change this; a preparer will check.');
       }
@@ -307,7 +316,12 @@
       eitc = Math.max(0, phasedIn - Math.max(0, Math.max(agi, earned) - th) * EITC.phaseOutRate[eitcKids]);
     }
 
-    const totalTax = incomeTax - nonrefundableUsed + seTax;
+    // Additional Medicare tax: 0.9% of wages and self-employment earnings over the threshold (Form 8959)
+    const medTh = ADDL_MEDICARE[status];
+    const seEarn = Math.max(0, seTotal * 0.9235);
+    const addlMedicare = 0.009 * (Math.max(0, wages - medTh) + Math.max(0, seEarn - Math.max(0, medTh - wages)));
+
+    const totalTax = incomeTax - nonrefundableUsed + seTax + addlMedicare;
     const payments = withheld + estPayments + actc + eitc;
     const result = payments - totalTax; // positive = refund
 
@@ -321,7 +335,7 @@
       notes.push('If you are 25 to 64, you may qualify for a small Earned Income Tax Credit (up to $664), not included here.');
     }
     if (agi > (married ? 250000 : 200000)) {
-      notes.push('High earners may owe an additional 0.9% Medicare tax or 3.8% investment tax, not included here.');
+      notes.push('High earners may also owe the 3.8% net investment income tax on investment income, not included here.');
     }
     if (input.hasInvestments) {
       notes.push('Stock sales and dividends can be taxed at lower capital gains rates. They are not included in this estimate.');
@@ -358,6 +372,7 @@
       refundableChildCredit: round(actc),
       eitc: round(eitc),
       seTax: round(seTax),
+      additionalMedicare: round(addlMedicare),
       totalTax: round(totalTax),
       withheld: round(withheld),
       estimatedPayments: round(estPayments),

@@ -39,14 +39,22 @@
     // S-corp: salary through payroll, the rest passes through on a K-1
     const employerFica = Math.min(salary, SS_WAGE_BASE) * 0.062 + salary * 0.0145;
     const employeeFica = employerFica; // same rates on the owner's side
+    // Owner with another job (not on a joint return, where other wages are the spouse's):
+    // Social Security withheld over the yearly maximum comes back as a credit
+    const ownOther = household.status === 'mfj' ? 0 : household.wages;
+    const excessSs = Math.max(0, 0.062 * (Math.min(ownOther, SS_WAGE_BASE) + Math.min(salary, SS_WAGE_BASE) - SS_WAGE_BASE));
     const futa = salary > 0 ? Math.min(salary, FUTA.base) * FUTA.rate : 0;
-    const k1 = profit - salary - employerFica - futa - costs;
-    const sc = T.estimate({ ...household, wages: household.wages + salary, k1SCorp: k1 });
-    const scState = St ? St.estimateState(household.state, { ...household, wages: household.wages + salary }, sc) : null;
-    const replacement = household.state === 'IL' ? Math.max(0, k1) * IL_REPLACEMENT_TAX : 0;
+    const beforeState = profit - salary - employerFica - futa - costs;
+    // Illinois replacement tax is paid by the S-corp and deducted before the K-1
+    const replacement = household.state === 'IL' ? Math.max(0, beforeState) * IL_REPLACEMENT_TAX : 0;
+    const k1 = beforeState - replacement;
+    const scIn = { ...household, wages: household.wages + salary, k1SCorp: k1, qbiW2Wages: salary,
+      seOwnerWages: household.status === 'mfj' ? 0 : household.wages + salary };
+    const sc = T.estimate(scIn);
+    const scState = St ? St.estimateState(household.state, scIn, sc) : null;
     const scorp = {
       federalIncomeTax: owed(sc),
-      payrollTax: employeeFica + employerFica + futa,
+      payrollTax: employeeFica + employerFica + futa - excessSs,
       stateTax: stateOwed(scState) + replacement,
       replacementTax: replacement,
       costs,
@@ -63,6 +71,9 @@
     }
     if (household.state === 'IL') notes.push('Illinois S-corps also pay a 1.5% replacement tax on their income. This is included above.');
     if (household.state && St && St.status(household.state) === 'coming-soon') notes.push('State income tax is not included for this state.');
+    if (household.state && household.state !== 'IL') notes.push('Some states charge S-corps their own taxes or fees (for example California 1.5% with an $800 minimum, Texas franchise tax). Add them to the extra costs.');
+    if (excessSs > 0) notes.push('Your other job and the S-corp salary together pass the Social Security wage limit; the extra Social Security withheld comes back as a credit. This is included above.');
+    if (household.status === 'mfj' && household.wages) notes.push("Other W-2 wages are treated as your spouse's. If they are yours, your Social Security tax may be lower in both set-ups.");
 
     return {
       profit, salary, sole, scorp,
@@ -104,7 +115,18 @@
       if (!salaryTouched) $('sc-salary').value = String(Math.round((num(v.profit) * 0.5) / 1000) * 1000);
       const c = compare(read());
       const box = $('sc-result');
-      box.hidden = !num(v.profit);
+      const err = $('sc-error');
+      const raw = $('sc-profit').value.trim();
+      const p = Number(raw);
+      const s = Number($('sc-salary').value || 0);
+      let msg = '';
+      if (!raw || !p) msg = 'Enter your yearly business profit to see the comparison.';
+      else if (!Number.isFinite(p) || p < 0) msg = 'Business profit must be a positive number. For a loss, an S-corp usually does not save tax.';
+      else if (p > 1e9) msg = 'Enter a profit under $1,000,000,000.';
+      else if (!Number.isFinite(s) || s < 0) msg = 'Salary must be zero or more.';
+      err.textContent = msg;
+      err.hidden = !msg;
+      box.hidden = Boolean(msg);
       if (box.hidden) return;
       const save = c.savings;
       $('sc-headline').textContent = save > 0

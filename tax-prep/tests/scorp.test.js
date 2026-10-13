@@ -21,7 +21,8 @@ assert.ok(c.savings > 0); n++;
 assert.ok(S.compare({ status: 'single', state: 'TX', profit: 20000, salary: 10000, costs: 2000 }).savings < 0); n++;
 // Illinois adds the 1.5% replacement tax on S-corp income
 const il = S.compare({ status: 'single', state: 'IL', profit: 80000, salary: 40000, costs: 2000 });
-eq(r(il.scorp.replacementTax), r(il.scorp.k1 * 0.015));
+// 1.5% of the S-corp's income before the tax, then deducted from the K-1
+eq(r(il.scorp.replacementTax), r((il.scorp.k1 + il.scorp.replacementTax) * 0.015));
 // Salary is capped at the profit; low salary warns
 eq(S.compare({ profit: 30000, salary: 90000 }).salary, 30000);
 assert.ok(S.compare({ profit: 100000, salary: 10000 }).notes.some((x) => /reasonable salary/.test(x))); n++;

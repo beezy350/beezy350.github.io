@@ -102,7 +102,7 @@
 
     // Schedule K-1s: tick "S-corp" on the row, otherwise partnership / LLC.
     // Partnership SE earnings default to box 1 + guaranteed payments when box 14A is blank.
-    let k1Partnership = 0, k1Guaranteed = 0, k1SCorp = 0, k1Se = 0;
+    let k1Partnership = 0, k1Guaranteed = 0, k1SCorp = 0, k1Se = 0, k1SeAssumed = 0;
     for (const i of rows('k1', 8)) {
       const box1 = money(get(`k1${i}_box1`));
       if (yes(get(`k1${i}_scorp`))) { k1SCorp += box1; continue; }
@@ -110,6 +110,7 @@
       const se = text(get(`k1${i}_se`));
       k1Partnership += box1;
       k1Guaranteed += gp;
+      if (!se) k1SeAssumed = 1;
       k1Se += se ? money(se) : box1 + gp;
     }
 
@@ -154,7 +155,7 @@
       hsaContribution: money(get('hsa_amount')),
       hsaFamily: yes(get('hsa_family')) ? 1 : 0,
       sepContribution: money(get('sep_amount')),
-      k1Partnership, k1Guaranteed, k1SCorp, k1Se,
+      k1Partnership, k1Guaranteed, k1SCorp, k1Se, k1SeAssumed,
       you50: by > 0 && by <= 1976 ? 1 : 0,
       spouse50: status === 'mfj' && bs > 0 && bs <= 1976 ? 1 : 0,
       you55: by > 0 && by <= 1971 ? 1 : 0,

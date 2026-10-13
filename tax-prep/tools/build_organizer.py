@@ -416,7 +416,8 @@ def build(sample=False):
         inp(ic.cell(row=rr, column=2))
         for col in (3, 4, 5):
             inp(ic.cell(row=rr, column=col), MONEY)
-        c = ic.cell(row=rr, column=6, value=f'=IF(A{rr}="{K1_TYPES[0]}",IF(E{rr}="",N(C{rr})+N(D{rr}),N(E{rr})),0)')
+        # a blank type counts as a partnership, like an unticked row in the PDF
+        c = ic.cell(row=rr, column=6, value=f'=IF(A{rr}="{K1_TYPES[1]}",0,IF(E{rr}="",N(C{rr})+N(D{rr}),N(E{rr})))')
         c.number_format = MONEY
         c.fill = TOTAL_FILL
     k1_last = 46 + K1_ROWS
@@ -630,10 +631,11 @@ def build(sample=False):
         ("hsaContribution", "HSA contributions", "=N(Income!C38)"),
         ("hsaFamily", "HSA family coverage", '=IF(TRIM(Income!C39)="Family",1,0)'),
         ("sepContribution", "SEP / solo 401(k)", "=N(Income!C40)"),
-        ("k1Partnership", "K-1 box 1, partnerships / LLCs", f'=SUMIF(Income!A47:A50,"{K1_TYPES[0]}",Income!C47:C50)'),
-        ("k1Guaranteed", "K-1 guaranteed payments", f'=SUMIF(Income!A47:A50,"{K1_TYPES[0]}",Income!D47:D50)'),
+        ("k1Partnership", "K-1 box 1, partnerships / LLCs", f'=SUM(Income!C47:C50)-SUMIF(Income!A47:A50,"{K1_TYPES[1]}",Income!C47:C50)'),
+        ("k1Guaranteed", "K-1 guaranteed payments", f'=SUM(Income!D47:D50)-SUMIF(Income!A47:A50,"{K1_TYPES[1]}",Income!D47:D50)'),
         ("k1SCorp", "K-1 box 1, S-corps", f'=SUMIF(Income!A47:A50,"{K1_TYPES[1]}",Income!C47:C50)'),
         ("k1Se", "K-1 self-employment earnings", "=SUM(Income!F47:F50)"),
+        ("k1SeAssumed", "Box 14A left blank on a partnership K-1", f'=IF(SUMPRODUCT((Income!A47:A50<>"{K1_TYPES[1]}")*((Income!C47:C50<>"")+(Income!D47:D50<>"")>0)*(Income!E47:E50=""))>0,1,0)'),
         ("you50", "You 50 or older (born 1976 or earlier)", '=IF(AND(ISNUMBER(Household!B6),Household!B6>0,Household!B6<=1976),1,0)'),
         ("spouse50", "Spouse 50 or older (joint returns)", '=IF(AND(C5="mfj",ISNUMBER(Household!B7),Household!B7>0,Household!B7<=1976),1,0)'),
         ("you55", "You 55 or older (HSA catch-up)", '=IF(AND(ISNUMBER(Household!B6),Household!B6>0,Household!B6<=1971),1,0)'),

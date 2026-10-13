@@ -27,18 +27,21 @@
     <div class="est-intro">
       <p class="eyebrow">2026 tax year &middot; for self-employed owners</p>
       <h1>S-corp savings calculator</h1>
-      <p>As a sole proprietor or single-member LLC, you pay 15.3% self-employment tax on all your profit. An S-corp pays you a salary and passes the rest of the profit to you without that tax, but it adds payroll and a separate business return. See which costs less for you.</p>
+      <p>As a sole proprietor or single-member LLC, you pay self-employment tax of about 14% on your profit (15.3% on 92.35% of it; the Social Security part stops at $184,500). An S-corp pays you a salary and passes the rest of the profit to you without that tax, but it adds payroll and a separate business return. See which costs less for you.</p>
       <p class="est-private">Your numbers stay on this device. Nothing is sent or saved.</p>
     </div>
 
     <form id="sc-form" class="est-card sc-card" novalidate>
       <h2>Your business and household</h2>
+      <fieldset class="sc-fieldset">
+      <legend class="sc-legend">Filing status</legend>
       <div class="choice-grid sc-status">
         <label class="choice"><input type="radio" name="status" value="single" checked><span><strong>Single</strong></span></label>
         <label class="choice"><input type="radio" name="status" value="mfj"><span><strong>Married filing jointly</strong></span></label>
         <label class="choice"><input type="radio" name="status" value="hoh"><span><strong>Head of household</strong></span></label>
         <label class="choice"><input type="radio" name="status" value="mfs"><span><strong>Married filing separately</strong></span></label>
       </div>
+      </fieldset>
       <div class="field-grid">
         <div class="field">
           <label for="sc-profit">Yearly business profit</label>
@@ -71,13 +74,14 @@
       </div>
     </form>
 
-    <section class="est-card sc-card" id="sc-result" aria-live="polite" hidden>
-      <p class="sc-headline" id="sc-headline"></p>
+    <p class="form-status error sc-error" id="sc-error" role="alert" hidden></p>
+    <section class="est-card sc-card" id="sc-result" hidden>
+      <p class="sc-headline" id="sc-headline" aria-live="polite"></p>
       <p class="est-help" id="sc-sub"></p>
       <div class="table-wrap"><table class="breakdown sc-table" id="sc-table"></table></div>
       <p class="est-help sc-key">Self-employment tax is 15.3% of your profit. Payroll taxes are the same 15.3% on your salary only (you and the S-corp each pay half), plus federal unemployment tax. In Illinois the S-corp's state tax includes the 1.5% replacement tax.</p>
       <h3 class="sc-h3">What salary works best?</h3>
-      <p class="est-help">A lower salary saves more but is harder to defend if the IRS asks. Most owners land between 40% and 60% of profit.</p>
+      <p class="est-help">A lower salary saves more but is harder to defend if the IRS asks. There's no set IRS percentage: the salary should be close to what you'd pay someone else to do your job.</p>
       <div class="table-wrap"><table class="breakdown sc-table" id="sc-salaries"></table></div>
       <ul class="sc-notes" id="sc-notes"></ul>
       <p class="est-disclaimer">A planning estimate using 2026 IRS figures and your state's rules, not tax advice. It leaves out retirement-plan and health-insurance differences, and the time and record-keeping an S-corp needs. Talk with us before you change your business set-up.</p>

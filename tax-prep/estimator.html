@@ -270,7 +270,14 @@
               <p class="est-help">No self-employment tax on this part.</p>
             </div>
           </div>
-          <input type="hidden" id="k1Se" name="k1Se">
+          <div class="field-grid">
+            <div class="field">
+              <label for="k1Se">Partnership K-1, box 14 code A</label>
+              <div class="money"><input type="number" id="k1Se" name="k1Se" min="-999999999" max="999999999" step="any" inputmode="decimal" placeholder="Leave blank if not shown"></div>
+              <p class="est-help">Self-employment earnings. Limited partners often show 0 here; blank means box 1 + 4c.</p>
+            </div>
+          </div>
+          <input type="hidden" id="k1SeAssumed" name="k1SeAssumed">
         </div>
 
         <label class="check"><input type="checkbox" id="usesCar" name="usesCar"> I drive a car for rideshare, delivery or other business</label>

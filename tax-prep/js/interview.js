@@ -36,7 +36,7 @@
     if (data.status !== 'mfj') { data.spouse65 = false; data.spouse50 = false; data.iraSpouse = 0; }
     if (data.status !== 'mfj' && data.status !== 'mfs') data.iraCoveredSpouse = false;
     if (!data.isTrucker) { data.perDiemFull = 0; data.perDiemCanada = 0; data.perDiemPartial = 0; }
-    if (!data.hasK1) { data.k1Partnership = 0; data.k1Guaranteed = 0; data.k1SCorp = 0; data.k1Se = ''; }
+    if (!data.hasK1) { data.k1Partnership = 0; data.k1Guaranteed = 0; data.k1SCorp = 0; data.k1Se = ''; data.k1SeAssumed = ''; }
     if (!data.usesCar) { data.carMilesH1 = 0; data.carMilesH2 = 0; data.carMilesTotal = 0; data.carCosts = 0; }
     return data;
   }
@@ -315,8 +315,6 @@
   });
   form.addEventListener('input', (e) => {
     if (/perDiem|seIncome|car/.test(e.target.id)) syncQuestions();
-    // box 14A from an uploaded K-1 no longer matches once the K-1 amounts are edited
-    if (/^k1(Partnership|Guaranteed)$/.test(e.target.id)) $('k1Se').value = '';
   });
   nextBtn.addEventListener('click', () => { if (validStep()) next(); });
   backBtn.addEventListener('click', back);
@@ -332,6 +330,7 @@
   });
   $('res-restart').addEventListener('click', () => {
     form.reset();
+    $('k1SeAssumed').value = ''; // hidden inputs survive reset()
     try { sessionStorage.removeItem('falconIntake'); } catch (e) { /* ignore */ }
     window.falconPL = null;
     window.falconOrganizer = null;
@@ -344,6 +343,7 @@
   window.FalconEstimator = {
     load(values) {
       form.reset();
+      $('k1SeAssumed').value = '';
       for (const [name, raw] of Object.entries(values)) {
         const field = form.elements[name];
         if (!field) continue;
@@ -360,7 +360,9 @@
       }
       const k1 = ['k1Partnership', 'k1Guaranteed', 'k1SCorp'].some((k) => Number(values[k]));
       $('hasK1').checked = k1;
+      // box 14A total (an uploaded 0 for a limited partner is kept); flag rows where it was assumed
       $('k1Se').value = k1 && values.k1Se != null && values.k1Se !== '' ? String(values.k1Se) : '';
+      $('k1SeAssumed').value = k1 && Number(values.k1SeAssumed) ? '1' : '';
       syncQuestions();
       show(resultsStep);
     },
