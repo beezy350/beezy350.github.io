@@ -16,7 +16,7 @@
     'stateEstimated', 'isTrucker', 'perDiemFull', 'perDiemCanada', 'perDiemPartial',
     'usesCar', 'carMilesH1', 'carMilesH2', 'carMilesTotal', 'carCosts', 'interest', 'unemployment', 'otherIncome',
     'retirement', 'retirementIncome', 'socialSecurity', 'iraYou', 'iraSpouse', 'iraCoveredYou', 'iraCoveredSpouse',
-    'hsaContribution', 'hsaFamily', 'sepContribution', 'k1Partnership', 'k1Guaranteed', 'k1SCorp', 'k1Se', 'you50', 'spouse50', 'you55', 'hasInvestments', 'mortgage', 'studentLoan', 'college', 'marketplace', 'noSsn', 'irsLetter'];
+    'otherWithheld', 'hsaContribution', 'hsaFamily', 'sepContribution', 'k1Partnership', 'k1Guaranteed', 'k1SCorp', 'k1Se', 'you50', 'spouse50', 'you55', 'hasInvestments', 'mortgage', 'studentLoan', 'college', 'marketplace', 'noSsn', 'irsLetter'];
 
   function say(msg, isError) {
     status.textContent = msg;
@@ -37,7 +37,8 @@
 
   // items: itemized expense lines kept for the Preparer summary (only when the upload is used)
   function finish(values, fileName, items) {
-    const income = ['wages', 'seIncome', 'interest', 'unemployment', 'otherIncome'].reduce((a, k) => a + (Number(values[k]) || 0), 0);
+    const income = ['wages', 'seIncome', 'interest', 'unemployment', 'otherIncome', 'retirementIncome', 'socialSecurity',
+      'k1Partnership', 'k1Guaranteed', 'k1SCorp'].some((k) => Number(values[k]));
     if (!income) {
       say('No income was entered in the organizer yet. Fill in the jobs or income section, save, and upload it again.', true);
       return;

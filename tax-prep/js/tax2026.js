@@ -125,7 +125,8 @@
     const notes = [];
 
     const wages = num(input.wages);
-    const withheld = num(input.withheld);
+    // W-2 withholding plus tax withheld on Social Security, 1099-R and 1099-G
+    const withheld = num(input.withheld) + num(input.otherWithheld);
     const tips = Math.min(num(input.tips), wages);
     const overtime = Math.min(num(input.overtimePremium), wages);
     // Truck driver per diem is a business deduction for the self-employed only
@@ -207,7 +208,7 @@
     const sepDeduction = Math.min(sepWanted, seComp * 0.2, SEP_MAX);
     if (sepWanted > sepDeduction + 0.5) notes.push(`SEP / solo 401(k): only $${Math.round(sepDeduction).toLocaleString('en-US')} counts here (20% of self-employment earnings after half the SE tax, up to $72,000). A solo 401(k) can allow more; a preparer will check.`);
     const hsaWanted = num(input.hsaContribution);
-    const hsaLimit = (input.hsaFamily ? HSA.family : HSA.self) + (input.you55 ? HSA.catchUp : 0);
+    const hsaLimit = (input.hsaFamily ? HSA.family : HSA.self) + (input.you55 || input.you65 ? HSA.catchUp : 0);
     const hsaDeduction = Math.min(hsaWanted, hsaLimit);
     if (hsaWanted > hsaDeduction) notes.push(`HSA: the 2026 limit is $${hsaLimit.toLocaleString('en-US')} for your coverage, including what your employer put in.`);
 
@@ -220,13 +221,15 @@
     // MAGI uses taxable Social Security figured before the IRA deduction (Pub. 590-A).
     const iraMagi = incomeNoSs + taxableSocialSecurity(socialSecurity, incomeNoSs - adjBeforeIra, status) - adjBeforeIra;
     const comp = Math.max(0, wages + seComp - sepDeduction);
-    const youOld = input.you50 || input.you65, spouseOld = input.spouse50 || input.spouse65;
+    const youOld = input.you50 || input.you55 || input.you65, spouseOld = input.spouse50 || input.spouse65;
     const youAsked = num(input.iraYou), spouseAsked = married ? num(input.iraSpouse) : 0;
-    const youIra = Math.min(youAsked, IRA.limit + (youOld ? IRA.catchUp : 0), comp);
-    const spouseIra = Math.min(spouseAsked, IRA.limit + (spouseOld ? IRA.catchUp : 0), Math.max(0, comp - youIra));
     const range = (covered, otherCovered) => (covered ? IRA.covered[status] : otherCovered ? IRA.spouseCovered[status] : null);
-    const iraDeduction = iraPhase(youIra, iraMagi, range(input.iraCoveredYou, (married || mfs) && input.iraCoveredSpouse)) +
-      iraPhase(spouseIra, iraMagi, range(input.iraCoveredSpouse, input.iraCoveredYou));
+    // the phase-out reduces each person's limit (Pub. 590-A worksheet 1-2), not the contribution
+    const youLimit = iraPhase(IRA.limit + (youOld ? IRA.catchUp : 0), iraMagi, range(input.iraCoveredYou, (married || mfs) && input.iraCoveredSpouse));
+    const spouseLimit = iraPhase(IRA.limit + (spouseOld ? IRA.catchUp : 0), iraMagi, range(input.iraCoveredSpouse, input.iraCoveredYou));
+    const youIra = Math.min(youAsked, youLimit, comp);
+    const spouseIra = Math.min(spouseAsked, spouseLimit, Math.max(0, comp - youIra));
+    const iraDeduction = youIra + spouseIra;
     if (youAsked + spouseAsked > iraDeduction + 0.5) {
       notes.push('Part of the IRA contribution is not deductible (over the limit, more than your pay, or phased out by a workplace plan). The rest can stay as a nondeductible contribution (Form 8606) or go to a Roth IRA.');
     }

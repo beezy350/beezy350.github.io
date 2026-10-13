@@ -484,7 +484,7 @@ def build(sample=False):
     total(car, tc, "Total car costs", {2: f"=SUM(B{first_cost}:B{last_cost})"})
     r0 = tc + 2
     calc = [
-        ("Standard mileage (72.5 cents Jan-Jun, 76 cents Jul-Dec)", f"=B5*Data!$C$66+B6*Data!$C$67", MONEY),
+        ("Standard mileage (72.5 cents Jan-Jun, 76 cents Jul-Dec)", f"=B5*Data!$C$86+B6*Data!$C$87", MONEY),
         ("Business share of all miles", '=IF(AND(B7>0,B5+B6>0),MIN(1,(B5+B6)/B7),"")', "0%"),
         ("Actual costs x business share", f'=IF(N(B{r0 + 1})>0,B{tc}*B{r0 + 1},"")', MONEY),
         ("We use the larger deduction", f'=MAX(B{r0},N(B{r0 + 2}))', MONEY),
@@ -518,7 +518,7 @@ def build(sample=False):
         # only 2026 days count
         tp.cell(row=rr, column=4, value=f'=IF({ok},MAX(0,MIN(B{rr}-1,DATE(2026,12,31))-MAX(A{rr}+1,DATE(2026,1,1))+1),0)').number_format = "0"
         tp.cell(row=rr, column=5, value=f'=IF({ok},{in_year(f"A{rr}")}*1+{in_year(f"B{rr}")}*1,0)').number_format = "0"
-        f = tp.cell(row=rr, column=6, value=f"=(D{rr}-MIN(C{rr},D{rr}))*Data!$C$60+MIN(C{rr},D{rr})*Data!$C$61+E{rr}*Data!$C$60*Data!$C$62")
+        f = tp.cell(row=rr, column=6, value=f"=(D{rr}-MIN(C{rr},D{rr}))*Data!$C$80+MIN(C{rr},D{rr})*Data!$C$81+E{rr}*Data!$C$80*Data!$C$82")
         f.number_format = MONEY
         # warn when two trips share days (the website counts each day once)
         tp.cell(row=rr, column=7, value=f'=IF(AND({ok},SUMPRODUCT(ISNUMBER($A$6:$A$35)*ISNUMBER($B$6:$B$35)*($A$6:$A$35<B{rr})*($B$6:$B$35>A{rr}))>1),"Overlaps another trip","")').font = font(color="A3472B", bold=True)
@@ -531,7 +531,7 @@ def build(sample=False):
         c.border = BOX
         c.number_format = MONEY if col == 6 else "0"
     tp.cell(row=37, column=5, value="Deductible (80%)").font = font(bold=True)
-    c = tp.cell(row=37, column=6, value="=F36*Data!$C$63")
+    c = tp.cell(row=37, column=6, value="=F36*Data!$C$83")
     c.number_format = MONEY
     c.font = font(bold=True)
     c.fill = TOTAL_FILL
@@ -600,7 +600,8 @@ def build(sample=False):
         ("hasDeps", "Has dependents", '=IF(C9+C10>0,"yes","no")'),
         ("childcare", "Paid childcare", yes("Household!B8")),
         ("wages", "W-2 wages plus unreported cash tips", "=Jobs!C16+Income!C24"),
-        ("withheld", "Federal tax withheld (W-2 and other forms)", "=Jobs!D16+N(Income!C30)"),
+        ("withheld", "Federal tax withheld (W-2)", "=Jobs!D16"),
+        ("otherWithheld", "Federal tax withheld on SSA-1099 / 1099-R / 1099-G", "=N(Income!C30)"),
         ("stateWithheld", "State tax withheld", "=Jobs!E16"),
         ("tips", "Tips (W-2 and cash)", "=Jobs!F16+Income!C24"),
         ("overtimePremium", "Overtime premium", "=Jobs!G16"),
@@ -634,7 +635,7 @@ def build(sample=False):
         ("k1SCorp", "K-1 box 1, S-corps", f'=SUMIF(Income!A47:A50,"{K1_TYPES[1]}",Income!C47:C50)'),
         ("k1Se", "K-1 self-employment earnings", "=SUM(Income!F47:F50)"),
         ("you50", "You 50 or older (born 1976 or earlier)", '=IF(AND(ISNUMBER(Household!B6),Household!B6>0,Household!B6<=1976),1,0)'),
-        ("spouse50", "Spouse 50 or older", '=IF(AND(ISNUMBER(Household!B7),Household!B7>0,Household!B7<=1976),1,0)'),
+        ("spouse50", "Spouse 50 or older (joint returns)", '=IF(AND(C5="mfj",ISNUMBER(Household!B7),Household!B7>0,Household!B7<=1976),1,0)'),
         ("you55", "You 55 or older (HSA catch-up)", '=IF(AND(ISNUMBER(Household!B6),Household!B6>0,Household!B6<=1971),1,0)'),
         ("retirement", "Has retirement withdrawals", '=IF(Income!C27>0,1,0)'),
     ]
@@ -646,23 +647,23 @@ def build(sample=False):
         dt.cell(row=rr, column=2, value=meaning).font = font(color="5A6475")
         dt.cell(row=rr, column=3, value=f).font = font()
     # per diem rates referenced by the Trips tab (fixed rows)
-    assert 4 + len(keys) < 59, "Data keys overlap the rate rows"
-    dt["A59"] = "Per diem rates (IRS Notice 2026-60)"
-    dt["A59"].font = font(bold=True, color=NAVY)
-    dt["A65"] = "Standard mileage rates 2026 (Notice 2026-10, Announcement 2026-11)"
-    dt["A65"].font = font(bold=True, color=NAVY)
-    for rr, lab, val in [(66, "Jan 1 - Jun 30, per mile", MILEAGE_RATES[0]), (67, "Jul 1 - Dec 31, per mile", MILEAGE_RATES[1])]:
+    assert 4 + len(keys) < 79, "Data keys overlap the rate rows"
+    dt["A79"] = "Per diem rates (IRS Notice 2026-60)"
+    dt["A79"].font = font(bold=True, color=NAVY)
+    dt["A85"] = "Standard mileage rates 2026 (Notice 2026-10, Announcement 2026-11)"
+    dt["A85"].font = font(bold=True, color=NAVY)
+    for rr, lab, val in [(86, "Jan 1 - Jun 30, per mile", MILEAGE_RATES[0]), (87, "Jul 1 - Dec 31, per mile", MILEAGE_RATES[1])]:
         dt.cell(row=rr, column=2, value=lab).font = font()
         c = dt.cell(row=rr, column=3, value=val)
         c.number_format = '$0.000'
         c.font = font(color="0000FF")
-    for rr, lab, val, fmt in [(60, "U.S. daily rate", 80, MONEY), (61, "Canada daily rate", 86, MONEY),
-                              (62, "Travel day share", 0.75, "0%"), (63, "Deductible share (DOT hours)", 0.8, "0%")]:
+    for rr, lab, val, fmt in [(80, "U.S. daily rate", 80, MONEY), (81, "Canada daily rate", 86, MONEY),
+                              (82, "Travel day share", 0.75, "0%"), (83, "Deductible share (DOT hours)", 0.8, "0%")]:
         dt.cell(row=rr, column=2, value=lab).font = font()
         c = dt.cell(row=rr, column=3, value=val)
         c.number_format = fmt
         c.font = font(color="0000FF")
-    dt["C60"].comment = Comment("Source: IRS Notice 2026-60, special M&IE rate for the transportation industry, Oct 1, 2026 - Sep 30, 2027 (same as prior year).", "Falcon Tax")
+    dt["C80"].comment = Comment("Source: IRS Notice 2026-60, special M&IE rate for the transportation industry, Oct 1, 2026 - Sep 30, 2027 (same as prior year).", "Falcon Tax")
     protect(dt, landscape=True)
 
     if sample:

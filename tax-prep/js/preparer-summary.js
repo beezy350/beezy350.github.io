@@ -119,7 +119,7 @@
       status: STATUS[r.status] || r.status,
       kids: Math.floor(num(d.childrenUnder17)), otherDeps: Math.floor(num(d.otherDependents)),
       income: [
-        ['W-2 wages (incl. unreported cash tips)', num(d.wages)], ['Federal tax withheld', num(d.withheld)],
+        ['W-2 wages (incl. unreported cash tips)', num(d.wages)], ['Federal tax withheld (W-2)', num(d.withheld)], ['Federal tax withheld (SSA-1099 / 1099-R / 1099-G)', num(d.otherWithheld)],
         ['State tax withheld', num(d.stateWithheld)], ['Tips (for the tips deduction)', num(d.tips)],
         ['Overtime premium', num(d.overtimePremium)], ['Self-employment gross receipts', seIncome],
         ['Interest', num(d.interest)], ['Unemployment', num(d.unemployment)], ['Retirement withdrawals (1099-R, taxable)', num(d.retirementIncome)],

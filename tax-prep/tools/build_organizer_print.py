@@ -369,7 +369,7 @@ def pages(s, k):
         s.text(M, y + 5, lab, 9.5)
         s.box(M + 330, y - 2, 150, 22, dollar=True)
         y -= 27
-    for lab in ["You are covered by a retirement plan at work (W-2 box 13)"] + (["Spouse is covered by a retirement plan at work"] if spouse else []) + [
+    for lab in ["You are covered by a retirement plan at work (W-2 box 13)"] + (["Spouse is covered by a retirement plan at work"] if k in (None, "mfj", "mfs") else []) + [
                 "HSA is family coverage (not self-only)"]:
         s.check(M, y)
         s.text(M + 18, y + 3, lab, 9.5)

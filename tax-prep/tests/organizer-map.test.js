@@ -53,8 +53,8 @@ eq(M.fromPdfFields({}, St.NAMES).usesCar, 0);
 // Social Security, retirement and savings fields; ages from birth years
 const ss = M.fromPdfFields({ status_mfj: true, birth_you: '1958', birth_spouse: '1974', income_socialsecurity: '30,000', income_retirement: '12000',
   income_other: '500', income_withheld: '1500', job1_fed: '100', ira_you: '8600', ira_covered_spouse: true, hsa_amount: '5000', hsa_family: true }, St.NAMES);
-eq([ss.socialSecurity, ss.retirementIncome, ss.otherIncome, ss.withheld, ss.iraYou, ss.iraCoveredSpouse, ss.hsaFamily, ss.you50, ss.spouse50, ss.you55],
-  [30000, 12000, 500, 1600, 8600, 1, 1, 1, 1, 1]);
+eq([ss.socialSecurity, ss.retirementIncome, ss.otherIncome, ss.withheld, ss.otherWithheld, ss.iraYou, ss.iraCoveredSpouse, ss.hsaFamily, ss.you50, ss.spouse50, ss.you55],
+  [30000, 12000, 500, 100, 1500, 8600, 1, 1, 1, 1, 1]);
 
 // K-1 rows: ticked = S-corp; partnership SE defaults to box 1 + guaranteed payments unless box 14A is filled
 const k1 = M.fromPdfFields({ k11_box1: '50,000', k11_gp: '20000', k12_box1: '30000', k12_se: '0', k13_box1: '40000', k13_scorp: true }, St.NAMES);

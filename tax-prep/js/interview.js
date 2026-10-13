@@ -33,9 +33,8 @@
     data.status = fd.get('status') || 'single';
     // Answers on skipped steps never count
     if (data.hasDeps !== 'yes') { data.childrenUnder17 = 0; data.otherDependents = 0; data.childcare = false; }
-    if (data.status !== 'mfj') { data.spouse65 = false; data.iraSpouse = 0; data.iraCoveredSpouse = false; }
-    // tax withheld on Social Security / 1099-R / 1099-G counts with W-2 withholding
-    data.withheld = (Number(data.withheld) || 0) + (Number(data.otherWithheld) || 0);
+    if (data.status !== 'mfj') { data.spouse65 = false; data.spouse50 = false; data.iraSpouse = 0; }
+    if (data.status !== 'mfj' && data.status !== 'mfs') data.iraCoveredSpouse = false;
     if (!data.isTrucker) { data.perDiemFull = 0; data.perDiemCanada = 0; data.perDiemPartial = 0; }
     if (!data.hasK1) { data.k1Partnership = 0; data.k1Guaranteed = 0; data.k1SCorp = 0; data.k1Se = ''; }
     if (!data.usesCar) { data.carMilesH1 = 0; data.carMilesH2 = 0; data.carMilesTotal = 0; data.carCosts = 0; }
@@ -91,6 +90,7 @@
     const s = d.status;
     spouseRow.hidden = s !== 'mfj';
     form.querySelectorAll('.mfj-only').forEach((el) => { el.hidden = s !== 'mfj'; });
+    form.querySelectorAll('.married-only').forEach((el) => { el.hidden = s !== 'mfj' && s !== 'mfs'; });
     if (spouseRow.hidden) $('spouse65').checked = false;
     $('note-mfj').hidden = s !== 'mfj';
     $('note-mfs').hidden = s !== 'mfs';
