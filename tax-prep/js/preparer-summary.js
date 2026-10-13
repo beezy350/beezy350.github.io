@@ -168,7 +168,7 @@
     if (num(d.withheld) && !wages) q.push(`Federal withholding of $${num(d.withheld).toLocaleString('en-US')} with no W-2 wages entered. Where did it come from: unemployment (1099-G), a retirement withdrawal (1099-R), a spouse's W-2 (wages missing), backup withholding on a 1099, or estimated payments?`);
     if (num(d.stateWithheld) && !wages) q.push('State withholding with no W-2 wages entered. Confirm the source and any missing W-2.');
     if (se) {
-      q.push('Match gross receipts to every 1099-NEC / 1099-K and the app or bank records. 1099-K gross includes platform fees, which go on line 10.');
+      q.push('Gross receipts = every 1099-K box 1a + every 1099-NEC box 1 + income with no form (bonuses or referrals under $600, cash). 1099-K gross includes the app\'s platform, service, third-party and Express Pay fees: deduct them on line 10 (not as one "other" lump). Get each app\'s yearly tax summary for fees and online miles.');
       q.push('Schedule C line G "materially participate": answer Yes for an owner who works the business regularly (drivers, contractors). "No" makes it a passive activity.');
     }
     const other = items.filter((i) => /^27/.test(String(i.line))).reduce((a, i) => a + i.amount * i.share, 0);
