@@ -418,6 +418,19 @@ textarea { resize: vertical; min-height: 90px; }
    ============================================ */
 @media (max-width: 860px) {
   .nav-links { display: none; }
+  .nav-links.open {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: absolute;
+    top: 64px;
+    right: 24px;
+    background: var(--white);
+    padding: 16px 24px;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 30px -10px rgba(31,59,44,0.25);
+  }
+  .nav-cta { display: none; }
   .nav-toggle { display: block; }
   .hero-grid { grid-template-columns: 1fr; }
   .props-grid { grid-template-columns: 1fr; }

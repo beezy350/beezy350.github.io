@@ -5,17 +5,18 @@ const navToggle = document.querySelector('.nav-toggle');
 const navLinks = document.querySelector('.nav-links');
 
 if (navToggle && navLinks) {
+  const setOpen = (open) => {
+    navLinks.classList.toggle('open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+  };
+
   navToggle.addEventListener('click', () => {
-    const isOpen = navLinks.style.display === 'flex';
-    navLinks.style.display = isOpen ? 'none' : 'flex';
-    navLinks.style.flexDirection = 'column';
-    navLinks.style.position = 'absolute';
-    navLinks.style.top = '64px';
-    navLinks.style.right = '24px';
-    navLinks.style.background = '#FFFFFF';
-    navLinks.style.padding = '16px 24px';
-    navLinks.style.borderRadius = '10px';
-    navLinks.style.boxShadow = '0 10px 30px -10px rgba(31,59,44,0.25)';
+    setOpen(!navLinks.classList.contains('open'));
+  });
+
+  // Close the menu after a link is tapped
+  navLinks.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => setOpen(false));
   });
 }
 
@@ -47,16 +48,15 @@ if (checklist) {
 }
 
 // ============================================
-// Quote form — placeholder handler.
-// Day 6-7 of the build plan replaces this with
-// real lead capture (Web3Forms / Formspree).
+// Quote form — placeholder handler until real
+// lead capture (Web3Forms / Formspree) is wired up.
 // ============================================
 const quoteForm = document.getElementById('quote-form');
 
 if (quoteForm) {
   quoteForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    alert('Form captured locally for testing. Lead storage + email notifications get wired up in Day 6-7.');
+    alert('Thanks! Online quote requests are not live yet. Please check back soon.');
     quoteForm.reset();
   });
 }
